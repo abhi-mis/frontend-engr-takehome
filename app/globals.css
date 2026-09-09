@@ -1,0 +1,1154 @@
+@import "tailwindcss";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+   Design tokens
+   ---------------------------------------------------------------------------
+   Tailwind 4 is CSS first, so this @theme block is the single source of truth
+   for the Propsoch palette, type scale and radius. There is no
+   tailwind.config.js.
+
+   Every colour here was read off the live propsoch.com stylesheet rather than
+   guessed, with the accessibility variants added on top. The full reasoning is
+   in the @theme block below.
+
+   scripts/check-contrast.mjs asserts every rendered pair. Change a value here
+   and change it there, then run `npm run check:contrast`.
+--------------------------------------------------------------------------- */
+
+/* ---------------------------------------------------------------------------
+   The rupee sign, and a 21.2 KB font download it was causing.
+
+   Measured on a production build: the page requested TWO Plus Jakarta Sans
+   subsets, 26.6 KB and 21.2 KB. Auditing every non-ASCII character on the page
+   found exactly one: the rupee sign, U+20B9, five times.
+
+   Google's `latin` subset covers U+0-FF plus a handful of extras including
+   U+20AC (the euro). It does NOT include U+20B9. The rupee lives in `latin-ext`
+   (U+20AD-20C0). So five currency symbols were pulling a whole extra 21.2 KB
+   font file, on a page whose entire stylesheet is under 10 KB.
+
+   The fix uses unicode-range for what it is actually for. This family covers a
+   single codepoint and resolves only to fonts already on the device, so it needs
+   no network request. Placed FIRST in the stack, the browser matches U+20B9
+   here, and `latin-ext` is never requested. Every other character falls straight
+   through to Plus Jakarta Sans.
+
+   If none of these local faces exist, the browser simply falls through to Plus
+   Jakarta Sans and downloads latin-ext as before, so the worst case is today's
+   behaviour rather than a missing glyph.
+--------------------------------------------------------------------------- */
+@font-face {
+  font-family: "Rupee Local";
+  src:
+    local("Segoe UI"), local("Noto Sans"), local("Roboto"),
+    local("Helvetica Neue"), local("Arial Unicode MS"), local("Arial"),
+    local("DejaVu Sans");
+  unicode-range: U+20B9;
+  font-display: swap;
+}
+
+@theme {
+  /* Brand.
+     The orange is rgb(255, 109, 50). That is not a guess: it is the fill in
+     Propsoch's own logo SVG. Three variants exist because one orange cannot do
+     every job accessibly:
+
+       --color-brand          #FF6D33  FILLS ONLY. 2.71:1 on the page, so it can
+                                       never be text at any size, but it is the
+                                       real brand colour and it is what should
+                                       dominate visually. The timeline markers,
+                                       the artwork, the stat chips, and the
+                                       typewriter caret in the hero headline.
+       --color-brand-display  #EF5410  LARGE TEXT ONLY (>=24px). 3.41:1, clears
+                                       the large-text bar. The hero headline
+                                       accent. Reads as the brand orange rather
+                                       than as rust.
+       --color-brand-strong   #C2410C  SMALL TEXT, icons, and the PRIMARY
+                                       BUTTON FILL. 5.00:1 as text on the page,
+                                       and white on it is 5.18:1, which is what
+                                       lets the button carry a white label with
+                                       no border. Links, labels, focus rings. */
+  --color-brand: #ff6d33; /* bright brand fills and surfaces */
+  --color-brand-button: #ff6d33; /* CTA surface, paired with warm ink text */
+  --color-brand-display: #ef5410; /* large display text only, >=24px */
+  --color-brand-strong: #c2410c; /* text, icons, AND the primary button fill */
+  /* Button hover and active. Both darker than the resting fill, because the
+     button now carries WHITE text and white needs the ground to stay dark:
+     lightening on hover would push the label's contrast down, which is what
+     shadcn's default `bg-primary/80` does. */
+  --color-brand-hover: #a8380a;
+  --color-brand-active: #8f2f08;
+  --color-brand-soft: #ffbfa5;
+  --color-brand-tint: #fff3ed; /* highlighted Propsoch column */
+  --color-accent-yellow: #ffd250; /* one flourish, non semantic */
+
+  /* Neutrals, taken from the live site */
+  --color-ink: #212130;
+  --color-ink-muted: #66677e;
+  --color-surface: #fbfbfa;
+  --color-surface-alt: #f2f3f7;
+  --color-line: #e3e4ec; /* decorative separators */
+  --color-line-strong: #7e7f94; /* borders of real controls, clears 3:1 */
+  --color-on-brand: #1a1206;
+  /* Secondary text on the dark surfaces (the timeline section, the footer
+     panel). A NAMED token rather than `text-surface/70`, because an alpha has
+     no fixed contrast ratio: it depends on whatever it composites against, and
+     that is exactly the bug found in shadcn's tab styling. This is 6.84:1 on
+     --color-ink and it is asserted in the contrast gate. */
+  --color-ink-muted-on-dark: #a8a9bc;
+
+  /* Type. One variable family, distinction comes from scale and weight.
+     "Rupee Local" is first but only claims U+20B9, see the @font-face above. */
+  --font-sans:
+    "Rupee Local", var(--font-jakarta), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, sans-serif;
+  --font-heading: var(--font-sans);
+
+  /* Modular scale, roughly 1.25, fluid where it needs to be */
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-base: 1rem;
+  --text-base--line-height: 1.6;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.55;
+  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --text-xl--line-height: 1.4;
+  --text-xl--letter-spacing: -0.012em;
+  --text-2xl: clamp(1.5rem, 1.3rem + 1vw, 2rem);
+  --text-2xl--line-height: 1.3;
+  --text-2xl--letter-spacing: -0.02em;
+  --text-3xl: clamp(1.875rem, 1.5rem + 1.8vw, 2.75rem);
+  --text-3xl--line-height: 1.15;
+  --text-3xl--letter-spacing: -0.028em;
+  --text-4xl: clamp(2.25rem, 1.6rem + 3.2vw, 3.75rem);
+  --text-4xl--line-height: 1.05;
+  --text-4xl--letter-spacing: -0.038em;
+
+  /* Surface ramp.
+
+     Three steps, so a card can read by DEPTH instead of by outline. Before
+     this there were two surfaces plus a --color-line hairline, which meant
+     every card drew a 1px grey border to separate itself, and a grey border
+     on near-white is the strongest "framework default" signal there is.
+
+       sunken   #F2F3F7  section grounds that hold cards
+       surface  #FBFBFA  the page itself
+       raised   #FFFFFF  cards and panels, lifted by shadow, no border
+
+     --color-surface-alt is kept as an alias of sunken so existing classes go
+     on working rather than needing a sweep. */
+  --color-surface-raised: #ffffff;
+  --color-surface-sunken: #f2f3f7;
+
+  /* Shadow scale.
+
+     Every shadow on the page used to be an arbitrary value written inline, and
+     no two agreed: 8px/24px on one card, 14px/34px on the next, 1px/2px on the
+     buttons. Inconsistent depth reads as noise rather than as light.
+
+     Two things make these read as Propsoch shadows rather than generic ones:
+
+       1. They are tinted with the INK hue, rgb(33 33 48), not black. Pure
+          black over a warm surface (#FBFBFA) goes muddy grey-brown, while the
+          ink tint keeps the shade in the same family as the type.
+       2. Each is TWO layers with a negative spread: a tight contact shadow
+          plus a wide soft one. That is how real light falls, and a
+          single-layer shadow is the tell of a flat design.
+
+     Decorative only. Nothing on the page relies on a shadow to be visible or
+     to mark a boundary, which is what keeps WCAG 1.4.11 out of it. */
+  --shadow-xs: 0 1px 2px -1px rgb(33 33 48 / 0.08);
+  --shadow-sm:
+    0 1px 2px -1px rgb(33 33 48 / 0.08), 0 2px 6px -2px rgb(33 33 48 / 0.06);
+  --shadow-md:
+    0 2px 4px -2px rgb(33 33 48 / 0.06), 0 10px 20px -8px rgb(33 33 48 / 0.1);
+  --shadow-lg:
+    0 4px 8px -4px rgb(33 33 48 / 0.06), 0 24px 44px -16px rgb(33 33 48 / 0.14);
+  /* The brand-tinted pair, for orange elements that glow rather than cast. */
+  --shadow-brand: 0 10px 26px -8px rgb(255 109 51 / 0.34);
+  --shadow-brand-glow: 0 0 12px rgb(255 109 50 / 0.55);
+
+  /* Layout */
+  --spacing: 0.25rem;
+  --radius-pill: 999px;
+
+  /* Semantic radii.
+
+     The numeric radii already form a scale off --radius (rounded-xl is
+     1.05rem, 2xl is 1.35rem, 3xl is 1.65rem), so the problem was never that
+     they were unrelated. It was that the SAME role picked a different step in
+     different files: the calculator panel was 2xl, the comparison card xl, the
+     footer panel 3xl. These two tokens name the roles instead, so that a card
+     is a card everywhere and a panel is a panel.
+
+     card is deliberately wider than the old 2xl. A generous corner on a large
+     surface against a tight one on a small control (--radius, 0.75rem) is the
+     radius relationship that reads as considered rather than as one value
+     applied everywhere. */
+  --radius-card: 1.25rem;
+  --radius-panel: 1.75rem;
+  --radius-inner: 0.875rem;
+}
+
+/* ---------------------------------------------------------------------------
+   shadcn semantic variables, pointed at the brand tokens above.
+   This is what makes every shadcn component inherit Propsoch theming without
+   editing the component files.
+--------------------------------------------------------------------------- */
+
+:root {
+  --radius: 0.75rem; /* one radius everywhere: buttons, cards, inputs */
+
+  --background: var(--color-surface);
+  --foreground: var(--color-ink);
+
+  --card: #ffffff;
+  --card-foreground: var(--color-ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--color-ink);
+
+  /* The primary CTA: white on the deeper orange.
+     White on the BRIGHT brand orange is 2.80:1 and is the original site's bug.
+     On #C2410C it is 5.18:1, so this pair is what makes "white label, no
+     border" achievable rather than a regression. Any shadcn component using
+     `bg-primary` inherits the accessible pair automatically. */
+  --primary: var(--color-brand-strong);
+  --primary-foreground: #ffffff;
+
+  --secondary: var(--color-surface-alt);
+  --secondary-foreground: var(--color-ink);
+
+  --muted: var(--color-surface-alt);
+  --muted-foreground: var(--color-ink-muted);
+
+  --accent: var(--color-brand-tint);
+  --accent-foreground: var(--color-brand-strong);
+
+  --destructive: #b3261e;
+  --destructive-foreground: #ffffff;
+
+  --border: var(--color-line);
+  --input: var(--color-line-strong); /* real controls need the 3:1 border */
+
+  /* Focus ring uses the darkened orange so the ring itself passes contrast.
+     The original site rings in #FF6D33, which does not. */
+  --ring: var(--color-brand-strong);
+
+  --chart-1: var(--color-brand);
+  --chart-2: var(--color-brand-strong);
+  --chart-3: var(--color-ink-muted);
+  --chart-4: var(--color-accent-yellow);
+  --chart-5: var(--color-ink);
+
+  --sidebar: var(--color-surface-alt);
+  --sidebar-foreground: var(--color-ink);
+  --sidebar-primary: var(--color-brand);
+  --sidebar-primary-foreground: var(--color-on-brand);
+  --sidebar-accent: var(--color-brand-tint);
+  --sidebar-accent-foreground: var(--color-brand-strong);
+  --sidebar-border: var(--color-line);
+  --sidebar-ring: var(--color-brand-strong);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ---------------------------------------------------------------------------
+   Base layer
+--------------------------------------------------------------------------- */
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    @apply font-sans;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Headings inherit the single family and lean on weight and size instead.
+
+     The letter-spacing here is a BACKSTOP, not the real value. Optical
+     tracking has to scale with size: what looks tight at 18px looks loose at
+     60px, because the apparent gap between letters grows with the type. So the
+     @theme block above sets a --text-*--letter-spacing per step (-0.012em at
+     xl up to -0.038em at 4xl) and Tailwind emits it as part of the text-*
+     utility, which lands in @layer utilities and therefore wins over this
+     rule. This value only applies to a heading carrying no text-* class at
+     all.
+
+     Weight is 700, not 800. Plus Jakarta Sans is loaded as a VARIABLE font
+     (next/font is given no weight option, so the whole 200-800 axis arrives in the
+     one 26.6 KB file), which means 700 is a real cut and costs nothing extra.
+     At display sizes 800 reads chunky rather than confident. */
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading text-balance;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    @apply text-pretty;
+  }
+
+  /* One focus treatment for the whole site. Never remove an outline without
+     replacing it, and ring in brand-strong so the ring passes 3:1 itself. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-strong);
+    outline-offset: 2px;
+    border-radius: calc(var(--radius) * 0.4);
+  }
+
+  /* Anchored scrolling clears the sticky header instead of hiding under it. */
+  :target {
+    scroll-margin-top: 5rem;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion layer
+
+   All motion on this site is plain CSS. There is no animation library and no
+   JavaScript driving any of it, which is what keeps the timeline and the hero
+   at zero client bytes.
+
+   Two rules govern the hero, both about protecting Largest Contentful Paint:
+     1. The h1 is NEVER animated. Fading in the LCP element from opacity 0 is
+        the most common way a site accidentally wrecks its own LCP.
+     2. Everything else gets one short entrance, transform and opacity only, so
+        the compositor handles it and the main thread stays free.
+--------------------------------------------------------------------------- */
+
+@keyframes propsoch-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes propsoch-fill-line {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes propsoch-marker-in {
+  from {
+    opacity: 0.35;
+    transform: scale(0.72);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* A slow vertical drift, used on the hero artwork's card tiers at different
+   delays so the diagram has a little life without drawing attention. Small
+   amplitude on purpose: 6px over 7 seconds reads as "alive", 20px over 2
+   seconds reads as "distracting". */
+@keyframes propsoch-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* A soft expanding ring on the hero artwork's chosen card. This is the only
+   looping attention-drawing motion on the page, and it sits on the one element
+   the whole diagram resolves to. */
+@keyframes propsoch-halo {
+  0% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  70% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.35);
+  }
+}
+
+/* Phrase-by-phrase reveal for the headline's question list.
+   A short rise with a blur that resolves, which reads as the words "settling"
+   rather than merely sliding. See the LCP note in components/sections/hero.tsx
+   for why the FIRST line is excluded from this. */
+@keyframes propsoch-word-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.32em);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   The loader.
+
+   A CSS-only splash: no client component, no JavaScript, no state. It plays
+   once and removes itself with `animation-fill-mode: forwards`, ending at
+   `visibility: hidden` and `pointer-events: none` so it cannot trap a click or
+   a focus ring afterwards.
+
+   Why CSS rather than a React effect: an overlay dismissed by `useEffect` needs
+   hydration to run before it can leave, so the splash would last as long as the
+   JavaScript takes to boot, which is precisely the thing this rebuild is trying
+   to make irrelevant. A CSS animation starts at first paint and finishes on
+   time regardless of whether any JavaScript has arrived.
+--------------------------------------------------------------------------- */
+@keyframes propsoch-splash-out {
+  0%,
+  62% {
+    opacity: 1;
+    visibility: visible;
+  }
+  100% {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+/* The mark's ring: a sweeping arc drawn with a dash gap. */
+@keyframes propsoch-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* The determinate-looking bar under the mark. It is not tied to real progress,
+   and it deliberately eases to a stop rather than filling linearly, so it does
+   not imply a measurement it does not have. */
+@keyframes propsoch-loadbar {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* An underline that draws itself under the headline's accent phrase.
+   This is how the hero gets a piece of motion ON the headline without
+   animating the headline. The TEXT paints at full opacity in frame one and is
+   never touched; only this decorative bar animates, so LCP is unaffected. */
+@keyframes propsoch-underline {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* A pulse travelling along the funnel's connector lines, so the diagram reads
+   as "many projects flowing down to one" rather than as a static tree.
+
+   Animating `stroke-dashoffset` on a dash pattern that is mostly gap gives a
+   short segment sliding along the path. The dash array is much longer than any
+   line here, so exactly one pulse is visible per line at a time. */
+@keyframes propsoch-flow {
+  from {
+    stroke-dashoffset: 320;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Background wash drift. Moves a large blurred blob a few percent, which reads
+   as ambient depth rather than as an animation. */
+@keyframes propsoch-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -3%, 0) scale(1.06);
+  }
+}
+
+/* The hero stage uses one slow ring and one soft pulse to make the funnel feel
+   active without animating layout, paint-heavy shadows, or the LCP headline. */
+@keyframes propsoch-stage-orbit {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes propsoch-stage-breathe {
+  0%,
+  100% {
+    opacity: 0.38;
+    transform: scale(0.96);
+  }
+  50% {
+    opacity: 0.62;
+    transform: scale(1.04);
+  }
+}
+
+/* One time hero entrance. Staggered by inline --delay on the element. */
+.animate-rise {
+  animation: propsoch-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: var(--delay, 0ms);
+  will-change: opacity, transform;
+}
+
+/* Ambient loops. All transform-only so the compositor owns them and the main
+   thread stays free. Each takes its timing from an inline --delay or --dur so
+   several elements can share one class without synchronising into a pulse. */
+.animate-float {
+  animation: propsoch-float var(--dur, 7s) ease-in-out infinite;
+  animation-delay: var(--delay, 0ms);
+}
+
+.animate-halo {
+  animation: propsoch-halo 3.2s ease-out infinite;
+  transform-origin: center;
+}
+
+.animate-drift {
+  animation: propsoch-drift 18s ease-in-out infinite;
+}
+
+/* The hero stage and stat-card treatments stay compositor-friendly. */
+.hero-stage-orbit {
+  animation: propsoch-stage-orbit 26s linear infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.hero-stage-glow {
+  animation: propsoch-stage-breathe 8s ease-in-out infinite;
+  will-change: opacity, transform;
+}
+
+.hero-stage-grid {
+  background-image:
+    linear-gradient(color-mix(in oklch, var(--color-brand-soft) 22%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklch, var(--color-brand-soft) 22%, transparent) 1px, transparent 1px);
+  background-size: 34px 34px;
+  mask-image: radial-gradient(ellipse at center, black 0%, transparent 72%);
+}
+
+.hero-stage-shell {
+  transition:
+    transform 300ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 300ms ease;
+}
+
+.hero-stage:hover .hero-stage-shell {
+  transform: translateY(-4px) scale(1.01);
+  filter: saturate(1.04);
+}
+
+.hero-stat-card {
+  position: relative;
+  overflow: hidden;
+  /* The raised surface, held at 88% so the hero's warm wash still reads
+     through it. That is what keeps the chips sitting IN the gradient rather
+     than as four opaque rectangles laid on top of it. */
+  background: color-mix(in oklch, var(--color-surface-raised) 88%, transparent);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 220ms ease;
+}
+
+/* Depth on hover instead of a border colour change. A shadow is not motion,
+   so this one survives prefers-reduced-motion while the .lift transform does
+   not. */
+.hero-stat-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.hero-stat-card::before {
+  position: absolute;
+  inset: 0 auto auto 0;
+  height: 3px;
+  width: 34%;
+  background: var(--color-brand);
+  content: "";
+  transform-origin: left center;
+  transition: width 220ms ease;
+}
+
+.hero-stat-card:hover::before {
+  width: 100%;
+}
+
+/* The headline's accent underline. Starts after the entrance has settled so it
+   reads as a flourish rather than as part of the load. */
+.animate-underline {
+  transform-origin: left center;
+  animation: propsoch-underline 620ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: 520ms;
+}
+
+.animate-flow {
+  stroke-dasharray: 26 320;
+  animation: propsoch-flow var(--dur, 3.2s) linear infinite;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* Headline phrases, revealed one after another. */
+.animate-word {
+  display: inline-block;
+  animation: propsoch-word-in 520ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* --- Loader ------------------------------------------------------------- */
+
+.splash {
+  animation: propsoch-splash-out 1150ms ease-in-out 220ms forwards;
+}
+
+.splash-ring {
+  animation: propsoch-spin 900ms linear infinite;
+}
+
+.splash-bar {
+  transform-origin: left center;
+  animation: propsoch-loadbar 1100ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
+}
+
+/* Lift on hover for the primary action and the stat cards. A transition rather
+   than a keyframe, so it only costs anything while the pointer is over it. */
+.lift {
+  transition:
+    transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 180ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    border-color 180ms ease;
+}
+
+.lift:hover {
+  transform: translateY(-2px);
+}
+
+/* ---------------------------------------------------------------------------
+   The headline typewriter.
+
+   Three phrases type in, hold, delete, and hand over to the next, forever.
+   Zero JavaScript, zero layout shift, and it never touches the LCP element.
+
+   HOW THE REVEAL WORKS, AND WHY IT IS NOT A WIDTH ANIMATION
+
+   The classic CSS typewriter animates width from 0 with steps(). That has two
+   problems here. It changes the element's LAYOUT on every frame, which is both
+   a compositor-unfriendly animation and a real risk to CLS; and an inline-block
+   whose width is animated cannot be sized by its own content, so it needs a
+   duplicate hidden copy of every string to measure against.
+
+   This masks instead. The text keeps its full layout box at all times and a
+   linear-gradient mask sweeps across it, so nothing reflows, nothing shifts,
+   and the animation runs entirely on the compositor.
+
+   WHY --p IS A REGISTERED PROPERTY
+
+   A plain custom property is an untyped token and cannot be interpolated: it
+   would jump from 0% to 100% with nothing in between. @property gives it the
+   <percentage> type, which is what makes it animatable, and inherits:true lets
+   the animation run on the ITEM while both the mask and the caret, which are
+   different descendants, read the same live value. That is what keeps the caret
+   welded to the reveal edge rather than approximately near it.
+
+   The initial value is 100%, deliberately: with no animation running, the text
+   is fully visible. Anything that switches the animation off, a reduced-motion
+   preference or a browser without @property, lands on readable text rather than
+   on an invisible headline.
+
+   HOW THE THREE PHRASES SHARE ONE LINE
+
+   They are grid items in the SAME cell (grid-area: 1 / 1), so the grid track
+   sizes itself to the widest phrase and the tallest line box once, at layout.
+   The box is therefore reserved before any animation runs and does not change
+   as the phrases swap, which is where the zero CLS comes from. No absolute
+   positioning and no duplicate sizer string.
+
+   Each item runs the same 9.6s keyframe offset by a third, so exactly one is
+   on screen at a time.
+--------------------------------------------------------------------------- */
+
+/* The typewriter's progress, 0% to 100%.
+ *
+ * inherits: true, AND I TRIED THE OTHER WAY AND MEASURED IT
+ *
+ * An animated INHERITED custom property invalidates style on the element and
+ * every descendant, every frame. That is a real cost and Lighthouse names these
+ * three elements under "non-composited animations", so the obvious optimisation
+ * is inherits: false with the animation moved onto the two leaves that consume
+ * it, where there is no subtree to invalidate.
+ *
+ * I built that and measured it, three Lighthouse runs each way against a
+ * production build in a clean Chrome:
+ *
+ *              performance         LCP              Style & Layout
+ *   inherit    91 / 85 / 83     2.07 / 3.19 / 3.41s   1227 / 1858 / 968ms
+ *   leaves     82 / 79 / 83     3.40 / 3.37 / 3.50s   1311 / 1539 / 1316ms
+ *
+ * Style recalculation did not improve, and nothing else did either. Splitting
+ * one animation across six leaf elements means six animation targets instead of
+ * three, and running them costs more than the narrower invalidation saves.
+ *
+ * Read that table honestly: the run-to-run spread on a single build (91 to 83)
+ * is wider than the gap between the two builds, so this is not a clean result.
+ * What it does support is that the split is not an improvement, which is enough
+ * reason not to carry the extra complexity.
+ *
+ * Keeping the reverted code documented rather than deleted, because "animated
+ * inherited custom properties are expensive" is true in general and is the kind
+ * of thing I would otherwise try again in six months.
+ *
+ * initial-value: 100% means an un-animated .type-text is simply fully visible
+ * text, which is what reduced-motion and no-JS both want. */
+@property --p {
+  syntax: "<percentage>";
+  inherits: true;
+  initial-value: 100%;
+}
+
+.type-line {
+  display: grid;
+  justify-items: start;
+}
+
+.type-item {
+  position: relative;
+  grid-area: 1 / 1;
+  width: max-content;
+  /* Only the first phrase shows when the animation is not running. */
+  opacity: 0;
+}
+
+.type-item:first-of-type {
+  opacity: 1;
+}
+
+.type-text {
+  display: inline-block;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 0 var(--p),
+    transparent var(--p)
+  );
+  mask-image: linear-gradient(90deg, #000 0 var(--p), transparent var(--p));
+}
+
+/* The caret.
+
+   FIRST ATTEMPT, AND WHY IT WAS WRONG
+
+   The obvious version is a thin absolutely positioned bar at left: var(--p),
+   which does track the mask edge exactly. It also registered five layout shifts
+   per cycle, for a CLS of 0.00013. Tiny, but real, and it should not be there:
+   left is a LAYOUT property, and an absolutely positioned element changing
+   its start position between frames is the definition of a layout shift. Chrome
+   does not care that the element is decorative or three pixels wide.
+
+   THE FIX
+
+   This element's geometry never changes. It spans the full text width for the
+   whole animation, and the caret itself is a background image whose POSITION
+   moves. Background position is a paint-only property: no layout, no shift, and
+   it composites like a transform would.
+
+   background-position-x with a percentage aligns that percentage of the image
+   with the same percentage of the box, so at 100% the bar sits flush against
+   the last glyph instead of hanging a caret's width past it, which is what you
+   actually want at the end of a word. */
+.type-caret {
+  position: absolute;
+  top: 0.1em;
+  bottom: 0.14em;
+  left: 0;
+  right: 0;
+  pointer-events: none;
+  background-image: linear-gradient(
+    var(--color-brand),
+    var(--color-brand)
+  );
+  background-repeat: no-repeat;
+  background-size: 0.055em 100%;
+  background-position-x: var(--p);
+  background-position-y: 0;
+}
+
+@keyframes propsoch-type {
+  /* Type in. steps() is set per segment rather than on the animation, because
+     a steps() timing function on the whole 9.6s would chop the holds up too. */
+  0% {
+    --p: 0%;
+    opacity: 1;
+    animation-timing-function: steps(12, end);
+  }
+  13% {
+    --p: 100%;
+    opacity: 1;
+    animation-timing-function: linear;
+  }
+  /* Hold, long enough to actually read it. */
+  26% {
+    --p: 100%;
+    opacity: 1;
+    animation-timing-function: steps(12, end);
+  }
+  /* Delete, faster than typing, which is how real deleting feels. */
+  33.33% {
+    --p: 0%;
+    opacity: 1;
+  }
+  /* Off stage while the other two take their turn. */
+  33.34% {
+    --p: 0%;
+    opacity: 0;
+  }
+  100% {
+    --p: 0%;
+    opacity: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Video testimonials.
+--------------------------------------------------------------------------- */
+
+/* The play badge's hover scale used to live here, and it was BROKEN the whole
+   time, which is worth leaving a note about rather than quietly deleting.
+
+   Tailwind's named group syntax is written group/play in JSX, and a slash is
+   not a legal character in a CSS identifier, so Tailwind emits the selector
+   with a backslash escape in front of the slash. Hand-writing the same rule in
+   plain CSS meant hand-writing that escape, the backslash was lost in transit,
+   and the file ended up with an unescaped slash, which is a parse error.
+
+   Turbopack's production build dropped the invalid rules silently and kept
+   going, so the build passed, the page looked fine, and the hover simply never
+   happened. The dev server is stricter and refused to compile, which is the
+   only reason it surfaced at all.
+
+   The fix is not to write the escape more carefully. It is to stop
+   hand-writing a selector the framework already generates correctly: the badge
+   now uses group-hover/play: and group-active/play: utilities in the JSX,
+   exactly like the poster zoom next to it always did. Reduced motion is
+   handled there too, with the motion-reduce: variant.
+
+   Best practice: if a class name contains characters CSS has to escape, target
+   it from the framework that owns it, never from a stylesheet by hand. */
+
+/* ---------------------------------------------------------------------------
+   The FAQ accordion.
+
+   Height cannot be animated to or from auto, which is why accordions either
+   jump open or ship a JavaScript measuring loop. Radix measures the panel for
+   us and exposes it as --radix-accordion-content-height, so the animation is
+   plain CSS between two known heights.
+
+   Opening is slower than closing on purpose: revealing text should feel like it
+   is arriving, closing should feel like getting out of the way.
+--------------------------------------------------------------------------- */
+
+@keyframes propsoch-accordion-open {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes propsoch-accordion-close {
+  from {
+    height: var(--radix-accordion-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
+  }
+}
+
+.faq-panel[data-state="open"] {
+  animation: propsoch-accordion-open 260ms cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.faq-panel[data-state="closed"] {
+  animation: propsoch-accordion-close 180ms cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* The dialog overlay's entrance. Opacity only, so it composites. */
+@keyframes propsoch-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes propsoch-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.type-item {
+  animation: propsoch-type 9.6s linear infinite both;
+  animation-delay: calc(var(--i) * 3.2s);
+}
+
+.type-caret {
+  animation: propsoch-caret 1.06s steps(1, end) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-stage-orbit,
+  .hero-stage-glow,
+  .hero-stage-shell {
+    animation: none;
+    transition: none;
+    transform: none;
+  }
+
+  /* The typewriter stops entirely rather than being duration-collapsed. The
+     blanket rule elsewhere lands one-shot animations on their final keyframe,
+     and this animation's final keyframe is opacity 0, which would hide the
+     headline's tail outright. Explicit beats clever. --p stays at its 100%
+     initial value, so phrase one is simply readable text. */
+  .type-item {
+    animation: none !important;
+    opacity: 0 !important;
+  }
+
+  .type-item:first-of-type {
+    opacity: 1 !important;
+  }
+
+  .type-caret {
+    display: none;
+  }
+
+  /* The accordion opens and closes instantly rather than being collapsed to
+     0.01ms by the blanket rule, which would land it on a final keyframe of
+     height 0 for the closing case and is fine, but leaves the OPENING case
+     animating a height for a hundredth of a second for no reason. */
+  .faq-panel[data-state="open"],
+  .faq-panel[data-state="closed"] {
+    animation: none !important;
+  }
+
+}
+
+/* ---------------------------------------------------------------------------
+   Lazy rendering for below-the-fold sections.
+
+   There are no images on this page, so `loading="lazy"` has nothing to do. The
+   equivalent win for a text and SVG page is `content-visibility: auto`, which
+   lets the browser SKIP layout, style and paint for a section until it is near
+   the viewport. On a page with a nine row table, a five step timeline and two
+   interactive panels, that is real rendering work moved off the first frame.
+
+   `contain-intrinsic-size` is not optional here. Without it a skipped section
+   reports zero height, the scrollbar jumps as you scroll into it, and anchor
+   links land in the wrong place. The value is a rough estimate of each
+   section's real height; being approximate is fine, being absent is not.
+
+   Deliberately NOT applied to the hero: it is above the fold and contains the
+   LCP element, so skipping its render would be actively harmful.
+--------------------------------------------------------------------------- */
+.lazy-section {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 900px;
+}
+
+/* ---------------------------------------------------------------------------
+   Timeline, scroll driven and JavaScript free.
+
+   The progress line and the step markers advance with scroll position using
+   CSS scroll-driven animations. The @supports guard matters more than the
+   animation: where scroll-driven animations are unavailable, the line is
+   already drawn in full and every marker is already active, so nothing is
+   hidden and nothing looks broken. The motion is purely additive.
+--------------------------------------------------------------------------- */
+
+.timeline {
+  view-timeline-name: --timeline;
+  view-timeline-axis: block;
+}
+
+.timeline-progress {
+  transform-origin: top center;
+  transform: scaleY(1); /* default and fallback: fully drawn */
+}
+
+.timeline-marker {
+  opacity: 1; /* default and fallback: fully active */
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .timeline-progress {
+      animation: propsoch-fill-line linear both;
+      animation-timeline: --timeline;
+      animation-range: entry 55% exit 45%;
+    }
+
+    .timeline-marker {
+      animation: propsoch-marker-in linear both;
+      animation-timeline: view();
+      animation-range: entry 15% cover 30%;
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Reduced motion, sitewide.
+
+   The blanket rule collapses durations so every one time animation lands on its
+   final state instantly. The marquee needs an explicit exception: collapsing its
+   duration would leave the track parked at translateX(-50%), which reads as
+   broken layout rather than as stillness. So it is switched off outright.
+--------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  /* The ambient loops are switched off outright rather than duration-collapsed.
+     The blanket rule above would land each on its final keyframe, which happens
+     to be harmless for these three, but relying on "the last frame happens to
+     be the resting state" is how the marquee bug above got made. Explicit is
+     better. The hover lift also goes, since a transform on hover is motion. */
+  .animate-float,
+  .animate-halo,
+  .animate-drift,
+  .animate-flow {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  /* The flow pulses are drawn with a dash pattern that is mostly gap, so
+     stopping the animation would leave stray dashes frozen mid-line. Clearing
+     the dash array hides them entirely and leaves the static connectors. */
+  .animate-flow {
+    stroke-dasharray: none !important;
+    opacity: 0 !important;
+  }
+
+  /* The underline is a scaleX from 0, so collapsing its duration would land it
+     at scaleX(1), which is the state we want. Stated explicitly anyway. */
+  .animate-underline {
+    animation: none !important;
+    transform: scaleX(1) !important;
+  }
+
+  .lift:hover {
+    transform: none !important;
+  }
+
+  /* The headline reveal collapses to its final state, so the words are simply
+     there. Blur is cleared explicitly: a collapsed duration lands on the last
+     keyframe, but leaving `filter` to chance on a headline is not worth it. */
+  .animate-word {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+
+  /* The splash is removed outright rather than animated away. Someone who has
+     asked for reduced motion should not be shown a spinner at all, let alone
+     wait out its exit. */
+  .splash {
+    display: none !important;
+  }
+}

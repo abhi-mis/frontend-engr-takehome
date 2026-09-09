@@ -1,0 +1,50 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+next-env.d.ts
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+*.tsbuildinfo
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files
+.env
+.env*.local
+.env.development
+.env.production
+
+# deployment
+/.vercel
+
+# editors and tooling
+.idea
+.vscode/*
+!.vscode/extensions.json
+.playwright-mcp/
+
+# NOTE: Implementation.md is deliberately NOT ignored.
+# It is the running teaching log for this rebuild and stays visible in the
+# repo folder. Commits are handled manually, so staging it is a per-commit choice.
