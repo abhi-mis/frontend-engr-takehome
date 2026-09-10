@@ -595,14 +595,22 @@ button:disabled,
     offset-distance: 46%;
     animation-timing-function: linear;
   }
+  /* Arrive at the Propsoch mark. 51.21% of 11.6s is 5940ms, which is the
+     same absolute moment the car reached this point before the stop existed,
+     so nothing about the drive up to here changed. */
   51.21% {
     offset-distance: 68%;
-    animation-timing-function: cubic-bezier(0.37, 0, 0.4, 1);
+    animation-timing-function: linear;
   }
-  /* Think at the Propsoch mark for exactly 600ms, then continue to the house. */
+  /* Stop and think for exactly 600ms (5.17% of 11.6s), then continue. The
+     easing sits HERE rather than on the keyframe above, because a
+     timing-function describes the segment that FOLLOWS its keyframe: on
+     51.21% it was easing the flat hold, where interpolating between two
+     identical values does nothing, and the actual climb to the house was
+     silently falling back to the animation's own `linear`. */
   56.38% {
     offset-distance: 68%;
-    opacity: 1;
+    animation-timing-function: cubic-bezier(0.37, 0, 0.4, 1);
   }
   73.97% {
     offset-distance: 100%;
@@ -634,39 +642,105 @@ button:disabled,
   }
 }
 
-/* The thinking bubble uses only the 600ms logo hold, never the house arrival. */
+/* The thinking bubble uses only the 600ms hold at the Propsoch mark, never the
+   house arrival.
+
+   THE POP NEEDS TIME TO BE A POP.
+
+   The window is 51.21% to 56.38%, which is 600ms, and the first version
+   turned it on at 51.21% having been off at 51.2%. That is 0.01% of 11.6s,
+   which is 1.16 milliseconds: a hard cut, and the scale and translate in
+   these keyframes were being computed and then never seen. It now spends
+   ~120ms arriving and ~120ms leaving, with ~360ms held in between, which is
+   the whole 600ms budget used rather than one frame of it. */
 @keyframes propsoch-route-thinking {
   0%,
-  51.2% {
+  51.21% {
     opacity: 0;
     transform: translateY(4px) scale(0.7);
   }
-  51.21% {
+  52.24% {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-  56.38% {
+  55.35% {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
-  56.39%,
+  56.38%,
   100% {
     opacity: 0;
     transform: translateY(4px) scale(0.7);
   }
 }
 
-/* Keep the old keyframe names below out of the stylesheet's active cascade. */
-/*
-  96.21% {
-    offset-distance: 100%;
-    opacity: 1;
-  }
-  100% {
-    offset-distance: 100%;
+/* ---------------------------------------------------------------------------
+   The house opens when the car leaves the Propsoch mark.
+
+   56.38% is the exact percentage the car's own `propsoch-route-drive` uses for
+   the end of its 600ms stop at the pit stop, so the lock turns on the frame
+   the car pulls away and not a moment either side of it. That is the whole
+   claim the scene is making: the advice is what opened the door, so the door
+   opens when the advice is finished, not when the car finally rolls up to it.
+
+   The two halves are separate keyframes rather than one, because they are on
+   different elements and the lock has a pop the lights do not: the padlock
+   swells slightly before it goes, the way something does when it gives.
+
+   RE-ARM ORDER MATTERS, AND IT WAS WRONG.
+
+   Both used to re-arm at 98%, and RouteProgress clears the checkpoint ticks
+   at 96.68%. That is 1.32% of 11.6s, about 150ms, in which the ticks had all
+   gone back to pending but the house was still lit and unlocked. The loop
+   therefore appeared to begin with an OPEN house that then slammed shut a
+   moment later, which is exactly backwards from the story: the house is what
+   the journey earns, so a lap has to start with it shut.
+
+   They now finish re-locking at 96.3%, just before the tick reset at 96.68%
+   and just as the car begins its fade at 96.21%. The order a viewer sees is
+   house shuts, car fades, ticks clear, new lap.
+
+   Opacity and transform only, so both stay on the compositor. They are in the
+   data-paused rule below with everything else, so an off screen hero costs
+   nothing.
+--------------------------------------------------------------------------- */
+@keyframes propsoch-home-unlock {
+  0%,
+  56.38% {
     opacity: 0;
   }
-*/
+  59.4%,
+  95% {
+    opacity: 1;
+  }
+  96.3%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes propsoch-home-lock {
+  0%,
+  56.38% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  /* The give. */
+  57.7% {
+    opacity: 1;
+    transform: scale(1.22);
+  }
+  59.4%,
+  95% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  96.3%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
 /* The three dots inside it, pulsing in sequence. Same "someone is composing a
    reply" motif as the three dots in the FAQ card's question bubble
@@ -892,13 +966,25 @@ button:disabled,
    "mat" into a yellow lozenge with something illegible inside it, and eight of
    those along a curve read as damage rather than as annotation. Wide enough to
    look drawn on, tight enough that the letters still win. */
+/* THE HIGHLIGHTER WAS EATING THE WORD.
+ *
+ * At 4.5px the stroke was wider than the letterforms it was meant to sit
+ * behind, so the three glyphs' halos merged into one lumpy yellow blob and
+ * "mat" came out looking bigger than the "Bro" and "ker" it is supposed to be
+ * a small annotation inside. 900 weight made it worse by thickening the
+ * letters into the same mass.
+ *
+ * 3.2px is enough to read as a highlighter and not enough to swallow the
+ * word, 800 keeps the letters distinct inside it, and the size gap to the
+ * 13.5px around it is now carried by the type rather than fought by the
+ * halo. */
 .hero-route-wordmark-mat {
-  font-size: 9.5px;
-  font-weight: 900;
+  font-size: 10px;
+  font-weight: 800;
   fill: var(--color-on-brand);
   fill-opacity: 1;
   stroke: var(--color-accent-yellow);
-  stroke-width: 4.5px;
+  stroke-width: 3.2px;
   stroke-linejoin: round;
   paint-order: stroke;
 }
@@ -988,6 +1074,156 @@ button:disabled,
   stroke: var(--color-surface-raised);
   opacity: var(--done);
   transition: opacity 220ms ease calc(var(--done) * 130ms);
+}
+
+/* ---------------------------------------------------------------------------
+   The destination house, shut and then open.
+--------------------------------------------------------------------------- */
+
+/* Absorbs the road's round end cap into something intentional. */
+.hero-route-home-ground {
+  fill: var(--color-ink);
+  opacity: 0.07;
+}
+
+.hero-route-home-wall {
+  fill: url(#propsoch-hero-wall-fill);
+  stroke: var(--color-brand-strong);
+  stroke-width: 2;
+}
+
+.hero-route-home-eave-shade {
+  fill: url(#propsoch-hero-eave-shade);
+}
+
+.hero-route-home-roof {
+  fill: url(#propsoch-hero-roof-fill);
+  stroke: var(--color-brand-strong);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+/* Tile courses. Light rather than dark, because they are the gaps between
+   raised tiles catching the sky, not lines drawn on a flat plane. */
+.hero-route-home-tiles {
+  fill: none;
+  stroke: #fff;
+  stroke-opacity: 0.22;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+.hero-route-home-fascia {
+  fill: var(--color-brand-strong);
+}
+
+.hero-route-home-chimney > rect {
+  fill: var(--color-brand-strong);
+}
+
+/* The reveal each opening is set into. Slightly darker than the wall, which
+   is what gives a window depth rather than looking painted on. */
+.hero-route-home-frame {
+  fill: var(--color-brand-soft);
+  fill-opacity: 0.55;
+  stroke: var(--color-brand-strong);
+  stroke-width: 1.4;
+}
+
+.hero-route-home-bars {
+  fill: none;
+  stroke: var(--color-brand-strong);
+  stroke-width: 1.3;
+  stroke-opacity: 0.75;
+}
+
+.hero-route-home-sill {
+  fill: var(--color-brand-strong);
+}
+
+/* Light spilling out of a lit window onto its sill. */
+.hero-route-home-spill {
+  fill: var(--color-accent-yellow);
+  opacity: 0.3;
+}
+
+/* Glass and the door leaf while the house is shut. Cool grey against a warm
+   scene, which is what makes the switch to lit read instantly. */
+.hero-route-home-dark {
+  fill: var(--color-line-strong);
+  opacity: 0.5;
+}
+
+.hero-route-home-lit {
+  opacity: 0;
+  animation: propsoch-home-unlock 11.6s linear infinite;
+}
+
+.hero-route-lock {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: propsoch-home-lock 11.6s linear infinite;
+}
+
+/* The plate is what makes the lock read as an object sitting ON the door
+   rather than a dark shape cut out of it. */
+.hero-route-lock-plate {
+  fill: var(--color-surface-raised);
+  opacity: 0.92;
+}
+
+.hero-route-lock-body {
+  fill: var(--color-ink);
+}
+
+.hero-route-lock-shackle {
+  fill: none;
+  stroke: var(--color-ink);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+}
+
+.hero-route-lock-hole {
+  fill: var(--color-surface-raised);
+}
+
+/* ---------------------------------------------------------------------------
+   The Propsoch mark on the map.
+
+   Every rule here paints once. The pin's only animation is the settle at the
+   bottom of this block, which is transform, so none of the depth work below
+   costs anything per frame.
+--------------------------------------------------------------------------- */
+
+/* Contact shadow on the tarmac. Soft and short, because the pin is standing
+   on the road rather than hovering above it. */
+.hero-route-pin-shadow {
+  fill: var(--color-ink);
+  opacity: 0.18;
+}
+
+/* The stroke is not decoration. #FF6D33 as a solid fill is 2.71:1 on this
+   ground, which fails the 3:1 WCAG 1.4.11 asks of a meaningful graphic, so
+   the shape is located by a --color-brand-strong ring instead. Same treatment
+   as the timeline markers, and the pair is asserted in
+   scripts/check-contrast.mjs. */
+.hero-route-pin-body {
+  fill: url(#propsoch-hero-pin-fill);
+  stroke: var(--color-brand-strong);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.hero-route-pin-rim {
+  fill: none;
+  stroke: #fff;
+  stroke-opacity: 0.42;
+  stroke-width: 3.5;
+  stroke-linecap: round;
+}
+
+.hero-route-pin-eye {
+  fill: var(--color-surface-raised);
 }
 
 /* The pin is checkpoint three's landmark, so it settles onto the road as the
@@ -1401,7 +1637,9 @@ button:disabled,
 .hero-route-art[data-paused] .hero-route-car,
 .hero-route-art[data-paused] .hero-route-wheel,
 .hero-route-art[data-paused] .hero-route-thinking,
-.hero-route-art[data-paused] .hero-route-thinking-dot {
+.hero-route-art[data-paused] .hero-route-thinking-dot,
+.hero-route-art[data-paused] .hero-route-home-lit,
+.hero-route-art[data-paused] .hero-route-lock {
   animation-play-state: paused;
 }
 
@@ -1653,11 +1891,17 @@ button:disabled,
   max-width: 52rem;
 }
 
+/* Measure only. The type itself is left alone on purpose.
+ *
+ * This used to also set `font-size: clamp(2.35rem, 4.8vw, 4.25rem)` with its
+ * own line-height and tracking, which rendered at 68px against the 44px every
+ * other section heading resolves to from `text-3xl`. Eight sections, seven at
+ * one size and one half again as big, is the kind of difference you feel as
+ * "something is off" before you can name it. The scale is defined once in the
+ * @theme block and SectionHeading applies it; a section that wants to shout
+ * should earn it some way other than opting out of the type scale. */
 .testimonials-heading h2 {
   max-width: 48rem;
-  font-size: clamp(2.35rem, 4.8vw, 4.25rem);
-  line-height: 0.99;
-  letter-spacing: -0.055em;
 }
 
 .testimonials-grid {
@@ -2117,10 +2361,25 @@ button:disabled,
   .hero-route-car,
   .hero-route-wheel,
   .hero-route-thinking,
-  .hero-route-thinking-dot {
+  .hero-route-thinking-dot,
+  .hero-route-home-lit,
+  .hero-route-lock {
     animation: none;
     transition: none;
     transform: none;
+  }
+
+  /* With no animation to open it, the house is shown OPEN rather than shut.
+     The still image of this scene is the finished journey everywhere else in
+     it (every checkpoint ticked, every card filled), and a padlock is the one
+     element that would contradict that: a completed route ending at a locked
+     door reads as a failure, not as stillness. */
+  .hero-route-home-lit {
+    opacity: 1;
+  }
+
+  .hero-route-lock {
+    display: none;
   }
 
   /* Parked, not deleted. The car's resting state is opacity 0 because its

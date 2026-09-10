@@ -708,6 +708,85 @@ export const ADVISORS: readonly Advisor[] = [
 ] as const;
 
 // ---------------------------------------------------------------------------
+// Guided Home Buying
+//
+// The closing argument: everything the service does, in one list, next to what
+// it is worth and what it costs you to start.
+//
+// PROVENANCE
+//
+// All of it is Propsoch's, read off their loyalty reward calculator page
+// (propsoch.com/loyalty-reward-calculator) by rendering it and extracting the
+// DOM, the same way the rest of this file was sourced. The heading, the six
+// capability lines, the card's title, its two supporting sentences, the
+// savings figure and both button labels are verbatim.
+//
+// `heading` is the same string as CALCULATOR.heading further down. That is not
+// an accident and it is not drift: Propsoch use the identical sentence in both
+// places, and the calculator block it also lives in is currently dormant (its
+// section was removed from the page at your request, the component and content
+// are kept). The two are written out separately rather than one importing the
+// other because they are two independent quotations of the same source, and a
+// shared constant would imply a dependency that does not exist.
+//
+// THE ONE STRING THAT IS MINE
+//
+// `note`. Propsoch print "Save Rs 4,78,125/-" as a flat number because on
+// their page it sits directly beneath a calculator you have just moved two
+// sliders on, so the inputs behind it are on screen. Here there is no
+// calculator (removed at your request), so the figure would arrive with no
+// context at all. The brief requires an estimate to be labelled illustrative
+// ON SCREEN rather than in a tooltip, so it is labelled. The wording matches
+// CALCULATOR.disclosure, which exists for exactly the same reason.
+//
+// The figure itself is real and it is theirs: at a Rs 2.5 Cr property and a
+// Rs 2.5 L monthly household income, their own calculator breaks it down as a
+// Rs 3,00,000 loyalty reward plus Rs 1,78,125 of time valued at the buyer's
+// own hourly rate, totalling the Rs 4,78,125 printed here.
+// ---------------------------------------------------------------------------
+
+export const GUIDED = {
+  /**
+   * Mine, and a navigational label rather than a claim, on the same reasoning
+   * as COMPARISON.eyebrow: no number, no promise, nothing that could be
+   * mistaken for a fact about the business.
+   */
+  eyebrow: "Why Propsoch",
+  /** Verbatim. Also CALCULATOR.heading, see the note above. */
+  heading: "Choose the smart way to save ~₹4.78 L & 3 months of your life.",
+  /** Verbatim. */
+  intro:
+    "You're about to make the biggest purchase of your life. We make sure you do it intelligently.",
+
+  /** Verbatim, the card that carries the offer. */
+  cardTitle: "Guided Home Buying",
+  cardBody:
+    "9 in 10 homebuyers have bought a home via us within 25 days. Trusted by 1000+ buyers from Google, Amazon, Peak XV etc.",
+  /** Verbatim, including their trailing "/-". */
+  savingsLabel: "Save",
+  savingsValue: "₹4,78,125/-",
+  /** Verbatim. */
+  cardFooter:
+    "Experience truly unbiased advisory & get total peace of mind",
+  /** Verbatim, both of them. Neither performs an action, as everywhere else. */
+  primaryCta: "Book A Free Call",
+  secondaryCta: "See How You Will Save",
+
+  /** Mine. See the note above for why this line has to exist. */
+  note: "Illustrative estimate based on Propsoch's published figures. Not a quote.",
+} as const;
+
+/** The six capability lines from the same block. All verbatim. */
+export const GUIDED_CAPABILITIES: readonly string[] = [
+  "Work with trained architects",
+  "Check builders, areas & projects",
+  "See pros & cons exhaustively",
+  "Assess livability & financial risks",
+  "Lowest price negotiations",
+  "Get rewarded handsomely",
+] as const;
+
+// ---------------------------------------------------------------------------
 // Savings calculator
 // ---------------------------------------------------------------------------
 

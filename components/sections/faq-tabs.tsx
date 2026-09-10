@@ -2,6 +2,7 @@
 
 import { Accordion, Tabs } from "radix-ui";
 import { PlusIcon } from "@/components/icons";
+import { TAB_LIST_CLASS, TAB_TRIGGER_CLASS } from "@/components/tab-strip";
 import type { FaqGroup } from "@/lib/faq";
 
 /**
@@ -48,18 +49,17 @@ interface FaqTabsProps {
 export function FaqTabs({ groups }: FaqTabsProps) {
   return (
     <Tabs.Root defaultValue={groups[0]?.slug} className="mt-10">
-      <Tabs.List
-        aria-label="Question categories"
-        // Scrollable rather than wrapping on small screens: four category
-        // labels wrap to three ragged lines at 360px, which reads as a mistake.
-        // A single scrolling row reads as a deliberate control.
-        className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
-      >
+      {/* The strip's look lives in components/tab-strip.ts, shared with the
+          comparison's. The two used to be designed separately and looked it:
+          this one filled its active pill solid brand orange with a white
+          label, which made a tab the loudest control on the page after the
+          primary CTA and had it competing with the actual action. */}
+      <Tabs.List aria-label="Question categories" className={TAB_LIST_CLASS}>
         {groups.map((group) => (
           <Tabs.Trigger
             key={group.slug}
             value={group.slug}
-            className="min-h-11 shrink-0 snap-start rounded-pill border border-line px-4 text-sm font-semibold whitespace-nowrap text-ink-muted transition-colors hover:text-ink data-active:border-transparent data-active:bg-brand-strong data-active:text-white"
+            className={TAB_TRIGGER_CLASS}
           >
             {group.category}
           </Tabs.Trigger>

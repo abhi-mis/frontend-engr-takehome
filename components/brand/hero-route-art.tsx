@@ -63,6 +63,12 @@ const ROAD =
 /** textPath needs a referencable path, and an id has to be unique per page. */
 const ROAD_ID = "propsoch-hero-road";
 
+/** Same rule for the gradients: referenced by url(), so they need names. */
+const PIN_FILL_ID = "propsoch-hero-pin-fill";
+const WALL_FILL_ID = "propsoch-hero-wall-fill";
+const ROOF_FILL_ID = "propsoch-hero-roof-fill";
+const EAVE_SHADE_ID = "propsoch-hero-eave-shade";
+
 /**
  * The three roadside checkpoints.
  *
@@ -138,6 +144,43 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
       >
         <defs>
           <path id={ROAD_ID} d={ROAD} />
+
+          {/* The pin's fill. Three real palette oranges rather than one flat
+              one: #FF895B is one of the secondary oranges from Propsoch's own
+              stylesheet, --color-brand is the logo fill, and
+              --color-brand-display is the darkened display tint. Lit from the
+              top left, which is where the hero's single light source already
+              comes from (see the one radial wash on .hero-home). */}
+          <linearGradient id={PIN_FILL_ID} x1="0.15" y1="0" x2="0.8" y2="1">
+            <stop offset="0%" stopColor="#FF895B" />
+            <stop offset="52%" stopColor="var(--color-brand)" />
+            <stop offset="100%" stopColor="var(--color-brand-display)" />
+          </linearGradient>
+
+          {/* Rendered walls, lit from the top left like everything else in
+              this scene. Near white where the light lands, settling into the
+              brand tint and then into shadow at the bottom right. */}
+          <linearGradient id={WALL_FILL_ID} x1="0.1" y1="0" x2="0.85" y2="1">
+            <stop offset="0%" stopColor="#FFFDFB" />
+            <stop offset="55%" stopColor="var(--color-brand-tint)" />
+            <stop offset="100%" stopColor="#F6DDD1" />
+          </linearGradient>
+
+          {/* Terracotta, which is both what a roof in this market actually is
+              and the one place the scene can carry a second large orange
+              without competing with the pin, because it is a roof and roofs
+              are supposed to be the darkest plane. */}
+          <linearGradient id={ROOF_FILL_ID} x1="0.2" y1="0" x2="0.8" y2="1">
+            <stop offset="0%" stopColor="#F4693A" />
+            <stop offset="100%" stopColor="var(--color-brand-strong)" />
+          </linearGradient>
+
+          {/* The shadow the eaves throw down the wall. A gradient rather than
+              a flat band, because an overhang does not cast a hard edge. */}
+          <linearGradient id={EAVE_SHADE_ID} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--color-brand-strong)" stopOpacity="0.2" />
+            <stop offset="100%" stopColor="var(--color-brand-strong)" stopOpacity="0" />
+          </linearGradient>
         </defs>
 
         <g className="hero-route-blocks" stroke="var(--color-line-strong)" strokeOpacity="0.18">
@@ -226,28 +269,73 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
           );
         })}
 
-        {/* The map pin, scaled down and pinned by its TIP to checkpoint 3.
+        {/* The Propsoch mark on the map, scaled down and pinned by its TIP to
+            checkpoint 3.
 
-            The transform reads right to left: move the tip (484, 271) to the
-            origin, scale about it, then put it back down on the road at
-            (444.2, 290.5). Scaling about the tip rather than the pin's centre
-            is the whole point, because the tip is the part that has to stay
-            on the road: scale about anything else and the pin lifts off it.
+            THE SHAPE IS DRAWN PROPERLY NOW, NOT APPROXIMATED.
 
-            0.82 because at full size it was the loudest thing in the scene
-            and it was competing with the headline next to it. The translate is
-            an attribute on an outer group because the inner group's transform
-            belongs to the stylesheet, and a CSS transform overwrites a
-            presentation attribute on the same element. */}
-        <g transform="translate(444.2 290.5) scale(0.82) translate(-484 -271)">
+            The old outline was a circle with two curves guessed onto the
+            bottom of it, and the seam showed: the tail met the head at an
+            angle instead of running out of it, so the silhouette had a kink
+            on each shoulder and the point was blunt. This one is a real
+            teardrop. The head is an exact 52 radius arc, and each side of the
+            tail leaves it on a VERTICAL tangent (the second control point
+            shares the x of the arc's endpoint), which is what makes the
+            transition invisible and the taper continuous all the way to a
+            sharp point at (484, 273).
+
+            WHAT MAKES IT READ AS AN OBJECT RATHER THAN A STICKER
+
+            Three things, none of which cost a frame because all of them are
+            painted once and never animate:
+
+              a gradient instead of one flat orange, lit from the top left to
+              match the hero's single light source;
+              a rim light inset along the top left arc, which is what gives
+              the head volume;
+              a contact shadow on the tarmac under the point, so it is
+              standing on the road rather than floating over it.
+
+            The transform reads right to left: move the tip (484, 273) to the
+            origin, scale about it, then put it back on the road at
+            (444.2, 290.5). Scaling about the tip is the whole point, because
+            the tip is the part that has to stay on the road: scale about
+            anything else and the pin lifts off it. 0.82 because at full size
+            it was competing with the headline next to it.
+
+            The translate is an attribute on an outer group because the inner
+            group's transform belongs to the stylesheet, and a CSS transform
+            overwrites a presentation attribute on the same element. */}
+        <g transform="translate(444.2 290.5) scale(0.82) translate(-484 -273)">
           <g className="hero-route-pin">
-            <path
-              d="M430 185c0-30 24-54 54-54s54 24 54 54c0 40-54 86-54 86s-54-46-54-86Z"
-              fill="var(--color-brand)"
-              stroke="var(--color-brand-strong)"
-              strokeWidth="2"
+            {/* On the road, under the point. Drawn first so the pin stands on
+                it rather than the other way round. */}
+            <ellipse
+              className="hero-route-pin-shadow"
+              cx="484"
+              cy="270"
+              rx="23"
+              ry="6"
             />
-            <circle cx="484" cy="184" r="17" fill="#fff" />
+
+            <path
+              className="hero-route-pin-body"
+              d="M484 273C470 246 432 210 432 183a52 52 0 1 1 104 0c0 27-38 63-52 90Z"
+            />
+
+            {/* The rim light. An inset arc rather than a stroke on the whole
+                outline, because a light source lights one side. */}
+            <path
+              className="hero-route-pin-rim"
+              d="M439.6 171.1A46 46 0 0 1 495.9 138.6"
+            />
+
+            {/* The plate the mark sits on. r=20 against a 27 wide mark, so the
+                mark's box fits INSIDE the disc with white all the way around
+                it. It used to be r=17 against a 29 wide mark, which meant the
+                orange overflowed the white and you read the logo's negative
+                space as a white ring instead of reading the logo. */}
+            <circle className="hero-route-pin-eye" cx="484" cy="183" r="20" />
             {/* THE REAL LOGO, not an approximation of it.
                 What sat here was a four pointed spark I drew by hand, on the
                 reasoning that Propsoch's mark is a house built around a spark
@@ -259,26 +347,214 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
                 A nested <svg> rather than a <g>: Logo owns its own viewBox and
                 a nested viewport both scales it and clips it to the glyph's
                 square, which is exactly what the "mark" variant needs. The
-                translate puts its 29x29 box centred on the pin's eye.
+                translate puts its 27x27 box centred on the pin's eye at
+                (484, 183).
 
-                29 in a disc of r=17, so the box's corners fall outside the
-                white. That is deliberately safe rather than lucky: the mark's
-                fill is #FF6D33 and so is the pin's, so anything that reaches
-                past the disc lands on the identical colour and cannot be
-                seen. It is why the mark can grow to fill the eye instead of
-                being sized to fit inside the disc's inscribed square. */}
-            <g transform="translate(469.5 169.5)">
-              <Logo variant="mark" width={29} decorative />
+                27 in a disc of r=20: the box's half diagonal is 19.1, so the
+                whole mark including its corners now sits inside the white with
+                room to spare. The previous pairing (29 in r=17) had a half
+                diagonal of 20.5 against a 17 radius, so the mark spilled past
+                the plate on all four corners. That was survivable only because
+                the mark's fill and the pin's fill are the same #FF6D33 and the
+                overflow was invisible, but it also meant the white you saw was
+                the logo's NEGATIVE space rather than a logo on a plate. It
+                reads as the mark now. */}
+            <g transform="translate(470.5 169.5)">
+              <Logo variant="mark" width={27} decorative />
             </g>
           </g>
         </g>
 
-        <g className="hero-route-destination">
-          <path d="M552 76 590 45l38 31v65h-76V76Z" fill="var(--color-brand-tint)" stroke="var(--color-brand-strong)" strokeWidth="2" strokeLinejoin="round" />
-          <path d="M566 91h15v17h-15zM598 91h15v17h-15z" fill="var(--color-brand-soft)" />
-          <path d="M583 141v-23h15v23" fill="var(--color-brand)" />
+        {/* The destination, lifted 8 units so it sits ON the kerb rather than
+            in the road.
+
+            This number has been wrong twice in opposite directions and both
+            are worth recording. Originally the house sat at y 45..141 while
+            the road ends at y 152: the road is stroked at 38 with a round cap,
+            so a 19 unit half-disc of tarmac stuck out below the building with
+            nothing on it, and the house appeared to float above a lollipop.
+            Dropping it 14 units fixed the lollipop and created a worse
+            problem, because the car parks at the end of that road and the
+            house had been moved down on top of where it parks.
+
+            -8 is the value that satisfies both. The house's base now lands on
+            the road's top edge (y 133 either way), so there is no gap and no
+            floating, and the whole car sits below it, on the tarmac, which is
+            where a parked car belongs. The round cap that started all this is
+            now the apron the car is parked on, with the ground shadow below
+            tying the two together.
+
+            THE HOUSE IS LOCKED UNTIL PROPSOCH OPENS IT.
+
+            This is the point of the whole scene and it was the one beat
+            missing. The house now starts shut: grey door, dark windows, a
+            padlock on it. It opens the moment the car pulls AWAY from the
+            Propsoch mark, not when it arrives at the house, because what
+            unlocked it was the advice, not the arrival. The lights come on,
+            the door turns brand orange and the padlock pops off.
+
+            The timing is a CSS keyframe on the same 11.6s clock as everything
+            else in this scene rather than another `data-stage`, for two
+            reasons: the moment it needs (56.38%, the car leaving the pit stop)
+            is not one of the five stage boundaries, and adding a sixth stage
+            would have broken the 0..4 mapping that the checkpoint ticks and
+            the four stat cards both read. See @keyframes propsoch-home-unlock. */}
+        <g className="hero-route-destination" transform="translate(0 -8)">
+          {/* Ground. Absorbs the road's end cap into something that looks
+              deliberate, and stops the house reading as pasted on. */}
+          <ellipse className="hero-route-home-ground" cx="590" cy="141" rx="54" ry="7" />
+
+          {/* IT WAS A PENTAGON WITH TWO GREY SQUARES IN IT.
+
+              One path did the roof and the walls together, so there was no
+              eaves line, no overhang and no difference in tone between the
+              plane that faces the sky and the plane that faces you, which is
+              the single biggest thing that makes a drawn house read as a
+              house. The windows were filled rectangles with no frame, no
+              glazing bars and no sill.
+
+              It is now built the way a house is built, back to front:
+              chimney, walls, roof over both, then the openings cut into the
+              wall. Each piece is a separate shape so each can take its own
+              tone, and the whole thing is lit from the top left to match the
+              one light source the rest of the hero uses.
+
+              Everything here paints once. None of it animates, so the detail
+              costs nothing per frame. */}
+
+          {/* Chimney FIRST, so the roof laid over it clips the stack off at
+              the roofline and it reads as coming through the roof rather than
+              as a box parked on top of it. */}
+          <g className="hero-route-home-chimney">
+            <rect x="606" y="45" width="10" height="24" />
+            <rect x="603.5" y="41.5" width="15" height="5" rx="1.6" />
+          </g>
+
+          {/* Walls. */}
+          <rect
+            className="hero-route-home-wall"
+            x="552"
+            y="80"
+            width="76"
+            height="61"
+          />
+
+          {/* The shadow the overhang throws down the top of the wall. */}
+          <rect
+            className="hero-route-home-eave-shade"
+            x="553"
+            y="81"
+            width="74"
+            height="13"
+          />
+
+          {/* Roof, overhanging the walls by 8 either side. */}
+          <path className="hero-route-home-roof" d="M544 81 590 40l46 41Z" />
+          {/* Tile courses, inset off both rakes so they do not touch the edge.
+              Three lines is enough to say "tiled" at this size; more turns
+              into a moire. */}
+          <path className="hero-route-home-tiles" d="M575 55h30M566 63h48M557 71h66" />
+          {/* Fascia, covering the joint where roof meets wall. */}
+          <rect
+            className="hero-route-home-fascia"
+            x="543"
+            y="78.5"
+            width="94"
+            height="5.5"
+            rx="2.2"
+          />
+
+          {/* THE DOOR IS OFF CENTRE, AND THAT IS THE CAR'S FAULT.
+
+              It used to sit dead centre under the roof apex. The car parks at
+              the end of the road, which is x 588, and the car is 38 wide, so
+              it covered x 569..607: the entire door, including the orange it
+              had just turned. The payoff of the unlock was visible for two
+              seconds and then parked on. The door sits left of the face now,
+              where the car overlaps only its bottom corner. */}
+
+          {/* Openings: frames first, then the glass and the door leaf, which
+              are the parts that change when the house opens. */}
+          <rect className="hero-route-home-frame" x="583" y="92" width="18" height="20" rx="1.6" />
+          <rect className="hero-route-home-frame" x="605" y="92" width="18" height="20" rx="1.6" />
+          <rect className="hero-route-home-frame" x="557" y="110" width="19" height="31" rx="1.6" />
+
+          {/* Shut: dark glass, grey door leaf. */}
+          <rect className="hero-route-home-dark" x="585" y="94" width="14" height="16" />
+          <rect className="hero-route-home-dark" x="607" y="94" width="14" height="16" />
+          <rect className="hero-route-home-dark" x="559" y="112" width="15" height="29" />
+
+          {/* Open: the lights come on and the door leaf takes the brand
+              orange. Accent yellow is this palette's declared one flourish and
+              it is spent here on purpose: nothing else says "somebody is home"
+              as immediately as two lit windows, and another orange would have
+              been a change you have to look for rather than one you see. */}
+          <g className="hero-route-home-lit">
+            <rect x="585" y="94" width="14" height="16" fill="var(--color-accent-yellow)" />
+            <rect x="607" y="94" width="14" height="16" fill="var(--color-accent-yellow)" />
+            <rect x="559" y="112" width="15" height="29" fill="var(--color-brand)" />
+            {/* Warm spill onto the sill, which is what actually sells a lit
+                window: the light has to land on something. */}
+            <path className="hero-route-home-spill" d="M583 112h18l3 4h-24zM605 112h18l3 4h-24z" />
+            {/* A handle, so the open door reads as a door and not a panel. */}
+            <circle cx="571" cy="127" r="1.5" fill="var(--color-brand-tint)" />
+          </g>
+
+          {/* Glazing bars and sills, drawn AFTER the lit group so they stay
+              legible whether the glass behind them is dark or lit. */}
+          <path
+            className="hero-route-home-bars"
+            d="M592 94v16M585 102h14M614 94v16M607 102h14"
+          />
+          <rect className="hero-route-home-sill" x="581.5" y="111.5" width="21" height="2.6" rx="1.3" />
+          <rect className="hero-route-home-sill" x="603.5" y="111.5" width="21" height="2.6" rx="1.3" />
+
+          {/* The padlock.
+
+              Redrawn from a flat dark rectangle with a hairline hoop into
+              something that reads as an object at 13 units wide: the body sits
+              on a white plate so it separates from the door underneath it
+              rather than merging with it, the shackle is heavy enough to read
+              as metal at this size, and the keyhole is a real keyhole (a
+              bore and a slot) rather than a dot. Pops and vanishes when the
+              car leaves the Propsoch mark. */}
+          <g className="hero-route-lock">
+            <path
+              className="hero-route-lock-shackle"
+              d="M563 121v-4a3.6 3.6 0 0 1 7.2 0v4"
+            />
+            <rect
+              className="hero-route-lock-plate"
+              x="558.6"
+              y="119.6"
+              width="16.4"
+              height="13.8"
+              rx="3.6"
+            />
+            <rect
+              className="hero-route-lock-body"
+              x="560"
+              y="121"
+              width="13.6"
+              height="11"
+              rx="2.8"
+            />
+            <circle className="hero-route-lock-hole" cx="566.8" cy="125" r="1.5" />
+            <rect
+              className="hero-route-lock-hole"
+              x="566.1"
+              y="125.6"
+              width="1.4"
+              height="3.2"
+              rx="0.7"
+            />
+          </g>
+
           {/* The house at the end of the route is a VERIFIED one, and that is
-              checkpoint four: the badge lands when the car parks, not before. */}
+              checkpoint four: the badge lands when the car parks, not before.
+              Separate from the lock on purpose. The lock is about ACCESS and
+              turns at the pit stop; this is about the house having been
+              CHECKED, and it turns on arrival. Two claims, two moments. */}
           <g className="hero-route-probe hero-route-verified" data-step="4">
             <circle className="hero-route-probe-halo" cx="622" cy="132" r="17" />
             {/* The waiting state. Without this the badge simply was not there
@@ -337,32 +613,49 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
             <circle className="hero-route-wheel-hub" r="1.45" cy="-4.1" cx="10" />
           </g>
 
-          {/* The "thinking" bubble.
+          {/* The "thinking" bubble, shown for the 600ms stop at the Propsoch
+              mark.
 
               Lives INSIDE the car group on purpose, not beside it: this way it
               inherits the exact same offset-path transform the car uses to
-              follow the road, so it is guaranteed to sit over the roof at
-              every frame rather than needing a second set of coordinates kept
-              in sync by hand. It is invisible for the whole drive and pops up
-              only during the arrival hold, see @keyframes
-              propsoch-route-thinking in globals.css for the timing.
+              follow the road, so it is guaranteed to sit over the roof rather
+              than needing a second set of coordinates kept in sync by hand.
 
-              Coordinates are local to the car (which is drawn with its wheels
-              at y ~ -4 and its cabin roof at y ~ -21), so -19 to -41 sits
-              clear above the roof with the tail closing the gap between them. */}
-          <g className="hero-route-thinking">
-            <path className="hero-route-thinking-tail" d="M-4 -24 4 -24 0 -19Z" />
-            <rect
-              className="hero-route-thinking-bubble"
-              x="-15"
-              y="-41"
-              width="30"
-              height="17"
-              rx="8.5"
-            />
-            <circle className="hero-route-thinking-dot" cx="-6.5" cy="-32.5" r="1.9" />
-            <circle className="hero-route-thinking-dot" cx="0" cy="-32.5" r="1.9" />
-            <circle className="hero-route-thinking-dot" cx="6.5" cy="-32.5" r="1.9" />
+              THE COUNTER-ROTATION IS NOT OPTIONAL.
+
+              Inheriting the car's transform means inheriting `offset-rotate:
+              auto` with it, and the car banks to the road's tangent. At the
+              house that was harmless, because the road levels off to about 7
+              degrees there. The Propsoch mark is NOT there: it sits at 68% of
+              the road, in the steepest part of the climb, where the tangent is
+              -61.43 degrees. Without this wrapper the bubble came up lying
+              almost on its side.
+
+              The angle is a hardcoded constant rather than something derived,
+              and that is safe for one specific reason: the bubble is only ever
+              visible while `offset-distance` is FROZEN at 68%, so the rotation
+              it is cancelling cannot change while anyone can see it. If the
+              stop ever moves to a different point on the road, this number has
+              to be recomputed from the tangent there, which is why the
+              distance it belongs to is written next to it. */}
+          <g transform="rotate(61.43)" data-cancels-tangent-at="68%">
+            <g className="hero-route-thinking">
+              {/* Coordinates are local to the car, which is drawn with its
+                  wheels at y ~ -4 and its cabin roof at y ~ -21, so -19 to -41
+                  sits clear above the roof with the tail closing the gap. */}
+              <path className="hero-route-thinking-tail" d="M-4 -24 4 -24 0 -19Z" />
+              <rect
+                className="hero-route-thinking-bubble"
+                x="-15"
+                y="-41"
+                width="30"
+                height="17"
+                rx="8.5"
+              />
+              <circle className="hero-route-thinking-dot" cx="-6.5" cy="-32.5" r="1.9" />
+              <circle className="hero-route-thinking-dot" cx="0" cy="-32.5" r="1.9" />
+              <circle className="hero-route-thinking-dot" cx="6.5" cy="-32.5" r="1.9" />
+            </g>
           </g>
         </g>
       </svg>

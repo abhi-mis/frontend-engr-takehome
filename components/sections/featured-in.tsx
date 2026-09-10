@@ -2,6 +2,15 @@ import { PRESS } from "@/lib/content";
 import { PRESS_LOGOS, type PressLogo } from "@/lib/press.generated";
 
 /**
+ * How many times the row is repeated inside the clip.
+ *
+ * Must satisfy `(TRACK_COPIES - 1) * trackWidth >= containerWidth` or the band
+ * shows a hole for part of every lap. See the note on THE COPIES above for the
+ * measured numbers behind this value.
+ */
+const TRACK_COPIES = 4;
+
+/**
  * "Featured in India's top media."
  *
  * A warm band with the mastheads scrolling through it, continuously.
@@ -39,14 +48,34 @@ import { PRESS_LOGOS, type PressLogo } from "@/lib/press.generated";
  * height, the cards are a fixed height, and the track is clipped rather than
  * sized by its contents.
  *
- * THE SECOND TRACK
+ * THE COPIES, AND THE ARITHMETIC THAT DECIDES HOW MANY
  *
- * A seamless loop needs the row to be duplicated. Both copies translate by
- * -100% of their own width in lockstep, so at the moment the animation
- * restarts the second copy is sitting exactly where the first one began and
- * there is nothing to see. The duplicate is `aria-hidden` and its links are
- * `tabIndex={-1}`, so a screen reader reads five mastheads rather than ten and
- * the keyboard walks through five links rather than ten. The clones stay real
+ * A seamless loop needs the row duplicated. Every copy translates by -100% of
+ * its own width in lockstep, so when the animation restarts, copy N is sitting
+ * exactly where copy N-1 began and there is nothing to see.
+ *
+ * TWO COPIES WAS NOT ENOUGH, AND THE PAGE SHOWED IT.
+ *
+ * The condition for no gap is that after a full scroll there is still enough
+ * content to fill the visible box:
+ *
+ *     (copies - 1) * trackWidth  >=  containerWidth
+ *
+ * Measured on this page at 1440: the container is 893px and one track is
+ * 684px. With two copies that leaves 684px of content to cover 893px, so for
+ * part of every lap there was a 209px hole in the band, which is the two or
+ * three "missing" logos. It was not random and it was not a rendering
+ * glitch, it was 893 minus 684.
+ *
+ * Four copies gives 2052px against 893px. That is deliberate headroom rather
+ * than a tight fit: it holds even if the logo set shrinks to two entries,
+ * which a tight fit would not. The cost is 15 extra `img` elements pointing
+ * at five URLs the browser has already cached, and three extra composited
+ * transforms. No extra requests, no extra layout.
+ *
+ * Only the first copy is real. The rest are `aria-hidden` with `tabIndex={-1}`
+ * links, so a screen reader hears five mastheads rather than twenty and the
+ * keyboard walks through five links rather than twenty. The clones stay real
  * links anyway, because a logo scrolling past that does nothing when clicked
  * is worse than a duplicate in the DOM.
  *
@@ -84,19 +113,23 @@ export function FeaturedIn() {
         </h2>
 
         {/* The clip. Everything about the loop happens inside this box: the
-            overflow that hides the second copy, and the mask that dissolves
-            the logos at both edges instead of letting them hit a hard line. */}
+            overflow that hides the copies, and the mask that dissolves the
+            logos at both edges instead of letting them hit a hard line. */}
         <div className="press-marquee">
-          <ul className="press-track">
-            {PRESS_LOGOS.map((logo) => (
-              <PressItem key={logo.src} logo={logo} />
-            ))}
-          </ul>
-          <ul className="press-track" aria-hidden="true">
-            {PRESS_LOGOS.map((logo) => (
-              <PressItem key={logo.src} logo={logo} cloned />
-            ))}
-          </ul>
+          {Array.from({ length: TRACK_COPIES }, (_, i) => (
+            <ul
+              key={i}
+              className="press-track"
+              // Only the first copy is the real list. The rest exist to fill
+              // the track and are hidden from assistive tech, so a screen
+              // reader hears five mastheads rather than twenty.
+              aria-hidden={i === 0 ? undefined : true}
+            >
+              {PRESS_LOGOS.map((logo) => (
+                <PressItem key={logo.src} logo={logo} cloned={i > 0} />
+              ))}
+            </ul>
+          ))}
         </div>
       </div>
     </section>

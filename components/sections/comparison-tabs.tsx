@@ -1,7 +1,8 @@
 "use client";
 
 import { Fragment } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs } from "radix-ui";
+import { TAB_LIST_CLASS, TAB_TRIGGER_CLASS } from "@/components/tab-strip";
 import { CheckIcon, CrossIcon } from "@/components/icons";
 import { COMPARISON, COMPARISON_SETS } from "@/lib/content";
 
@@ -45,29 +46,31 @@ import { COMPARISON, COMPARISON_SETS } from "@/lib/content";
  */
 export function ComparisonTabs() {
   return (
-    <Tabs defaultValue={COMPARISON_SETS[0].id} className="mt-8 gap-5">
-      <TabsList
-        aria-label={COMPARISON.tabsLabel}
-        // shadcn's TabsList is h-8 with `text-foreground/60` for inactive
-        // triggers. Both are overridden: h-8 is under the 44px target this
-        // project requires, and foreground at 60% alpha over this panel is
-        // 4.10:1, which fails AA. That is the same low-contrast tab text the
-        // brief asks me to fix on the original, shipped as a library default.
-        className="h-auto w-full max-w-md gap-1 rounded-card bg-surface-raised p-1.5 shadow-xs"
-      >
+    // Radix directly rather than through components/ui/tabs, and the FAQ's
+    // strip does the same. shadcn's TabsList and TabsTrigger carry a
+    // segmented-control shape (`inline-flex w-fit`, `flex-1`, a `data-active`
+    // background, an `::after` underline and a set of dark-mode rules) that
+    // has to be fought class by class to become anything else. The shared
+    // treatment in components/tab-strip.ts is a row of pills, so it is
+    // cheaper and far less fragile to skip the wrapper than to override it.
+    <Tabs.Root
+      defaultValue={COMPARISON_SETS[0].id}
+      className="mt-8 flex flex-col gap-5"
+    >
+      <Tabs.List aria-label={COMPARISON.tabsLabel} className={TAB_LIST_CLASS}>
         {COMPARISON_SETS.map((set) => (
-          <TabsTrigger
+          <Tabs.Trigger
             key={set.id}
             value={set.id}
-            className="min-h-11 flex-1 rounded-inner text-sm font-semibold text-ink-muted data-active:bg-brand-tint data-active:text-brand-strong data-active:shadow-xs"
+            className={TAB_TRIGGER_CLASS}
           >
             {set.tabLabel}
-          </TabsTrigger>
+          </Tabs.Trigger>
         ))}
-      </TabsList>
+      </Tabs.List>
 
       {COMPARISON_SETS.map((set) => (
-        <TabsContent
+        <Tabs.Content
           key={set.id}
           value={set.id}
           forceMount
@@ -192,8 +195,8 @@ export function ComparisonTabs() {
               </tbody>
             </table>
           </div>
-        </TabsContent>
+        </Tabs.Content>
       ))}
-    </Tabs>
+    </Tabs.Root>
   );
 }

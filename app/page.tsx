@@ -5,6 +5,7 @@ import { RealityCheck } from "@/components/sections/reality-check";
 import { Timeline } from "@/components/sections/timeline";
 import { FloorPlan } from "@/components/sections/floor-plan";
 import { Advisors } from "@/components/sections/advisors";
+import { Guided } from "@/components/sections/guided";
 import { FeaturedIn } from "@/components/sections/featured-in";
 import { Faq } from "@/components/sections/faq";
 
@@ -36,9 +37,15 @@ import { Faq } from "@/components/sections/faq";
  * without being a client island: it is a radio group driving CSS, so the two
  * new sections together add zero bytes of JavaScript.
  *
+ * `Guided` is the closing argument, and it goes last of the argument sections
+ * for the same reason: six capability lines are a recap once the case has been
+ * made and proved, and a list of unbacked claims before it has. Its own note
+ * covers why it is a light section with a raised card rather than the dark
+ * band Propsoch use for it.
+ *
  * The grounds still alternate, which is the thing that keeps a long page from
  * reading as one column: sunken, surface, sunken, surface, ink, surface,
- * sunken, surface. No two neighbours share a background.
+ * sunken, band, surface. No two neighbours share a background.
  *
  * The press logos sit in between, as a quiet band rather than a section: by
  * that point the argument is made, and third-party coverage is a stamp on it
@@ -67,6 +74,7 @@ export default function HomePage() {
       <FloorPlan />
       <Timeline />
       <Advisors />
+      <Guided />
       <FeaturedIn />
       <Faq />
     </main>
