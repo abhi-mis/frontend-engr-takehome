@@ -4,7 +4,7 @@ I rebuilt the Propsoch real-estate advisory landing page using Next.js, TypeScri
 
 I kept the Propsoch brand, content and personality in place, and focused on making the experience faster, clearer, more accessible and more usable on every screen size.
 
-**Live assignment rebuild:** [take-home-abhishek.vercel.app](https://take-home-abhishek.vercel.app/)
+**Live assignment rebuild:** [frontend-engr-takehome.vercel.app](frontend-engr-takehome.vercel.app/)
 
 ## Basic Setup
 
@@ -44,8 +44,7 @@ I rebuilt the landing page with a redesigned hero, responsive desktop and mobile
 
 This repository separates the work into three documents:
 
-- [README.md](README.md): Basic project and assignment details.
-- [ANALYSIS.md](ANALYSIS.md): Web Vitals, Lighthouse results, performance issues and how they were fixed.
+- [ANALYSIS.md](ANALYSIS.md): Web Vitals, Lighthouse results, issues and how they were fixed.
 - [IMPROVEMENTS.md](IMPROVEMENTS.md): UX, UI, accessibility and design improvements, including what changed and why.
 
 ### Submission Readiness
@@ -54,19 +53,6 @@ This repository separates the work into three documents:
 - I make the improved landing page available through the local production build.
 - I cover responsive behaviour across mobile, tablet and desktop widths.
 - I include performance, accessibility and code quality checks in the project scripts.
-
-## Performance Summary
-
-The final mobile Lighthouse result is:
-
-| Metric | Original | Rebuild |
-| --- | ---: | ---: |
-| Performance | **42** | **99** |
-| Accessibility | 84 | **97** |
-| Best Practices | 100 | **100** |
-| SEO | 92 | **100** |
-
-Full Web Vitals and performance measurements are available in [ANALYSIS.md](ANALYSIS.md).
 
 ## Folder Structure
 
