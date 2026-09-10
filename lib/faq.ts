@@ -83,8 +83,6 @@ export const FAQ_CTA = {
   heading: "Still have questions?",
   sub: "We are always here for you",
   cta: "Book A Free Call",
-  /** Mine: their spectacles graphic is decorative, but it needs a name if it is ever exposed. */
-  imageAlt: "",
 } as const;
 
 export const FAQ_GROUPS: readonly FaqGroup[] = [

@@ -2,7 +2,6 @@ import { SectionHeading } from "@/components/section-heading";
 import { FaqTabs } from "@/components/sections/faq-tabs";
 import { PrimaryCta } from "@/components/primary-cta";
 import { FAQ_CTA, FAQ_GROUPS, FAQ_SECTION } from "@/lib/faq";
-import { FAQ_SPECTACLES } from "@/lib/plan-media.generated";
 
 /**
  * The FAQ, and the card underneath it.
@@ -44,9 +43,19 @@ export function Faq() {
             on layered depth looks like a different site.
 
             So: the deep brand orange, which the white label and the card's own
-            edge both clear comfortably, a soft radial to give the fill some
-            light, and the spectacles graphic kept because it is the one piece
-            of personality in this part of the page.
+            edge both clear comfortably, and a soft radial to give the fill some
+            light.
+
+            The artwork used to be Propsoch's spectacles graphic. It was a
+            stock-feeling object that said nothing about this card, which is a
+            card about talking to a person: "Still have questions?", "We are
+            always here for you", "Book A Free Call". Two chat bubbles say that.
+            The reply carries their four pointed spark, the same mark now in the
+            hero pin, so the answer is visibly Propsoch's.
+
+            Inline svg rather than an image, so it costs no request (the old
+            graphic was an 11 KB fetch), scales without a srcset, and picks up
+            currentColor instead of shipping baked-in pixels.
         ---------------------------------------------------------------- */}
         <div className="relative isolate mt-14 overflow-hidden rounded-panel bg-brand-strong shadow-lg">
           <div
@@ -56,17 +65,36 @@ export function Faq() {
 
           <div className="flex flex-col items-center gap-6 px-6 py-8 text-center sm:px-10 md:flex-row md:justify-between md:gap-10 md:text-left lg:px-14 lg:py-10">
             <div className="flex flex-col items-center gap-5 md:flex-row md:gap-7">
-              {/* Decorative, so empty alt: the heading beside it already says
-                  everything this graphic is doing. */}
-              <img
-                src={FAQ_SPECTACLES.src}
-                width={FAQ_SPECTACLES.width}
-                height={FAQ_SPECTACLES.height}
-                alt={FAQ_CTA.imageAlt}
-                loading="lazy"
-                decoding="async"
-                className="h-auto w-[8.5rem] shrink-0 drop-shadow-[0_8px_18px_rgba(26,18,6,0.28)] sm:w-40"
-              />
+              {/* A question and its answer. Decorative, so aria-hidden: the
+                  heading beside it already says what this card is. */}
+              <svg
+                aria-hidden
+                viewBox="0 0 132 104"
+                fill="none"
+                className="h-auto w-[7.5rem] shrink-0 drop-shadow-[0_10px_20px_rgba(26,18,6,0.22)] sm:w-32"
+              >
+                {/* The question, behind and translucent: someone else's, not
+                    yet answered. Three dots rather than a "?" glyph, because a
+                    punctuation mark at this size reads as a typo. */}
+                <path
+                  d="M8 18a12 12 0 0 1 12-12h58a12 12 0 0 1 12 12v28a12 12 0 0 1-12 12H36l-16 13V58a12 12 0 0 1-12-12Z"
+                  fill="#fff"
+                  fillOpacity="0.22"
+                />
+                {[36, 50, 64].map((cx) => (
+                  <circle key={cx} cx={cx} cy="32" r="4" fill="#fff" fillOpacity="0.5" />
+                ))}
+
+                {/* The reply, in front and solid, carrying their mark. */}
+                <path
+                  d="M124 56a12 12 0 0 0-12-12H62a12 12 0 0 0-12 12v22a12 12 0 0 0 12 12h44l16 12V78a12 12 0 0 0 2-22Z"
+                  fill="#fff"
+                />
+                <path
+                  d="M87 55c0 6.63 5.37 12 12 12-6.63 0-12 5.37-12 12 0-6.63-5.37-12-12-12 6.63 0 12-5.37 12-12Z"
+                  fill="var(--color-brand-strong)"
+                />
+              </svg>
 
               <div className="flex flex-col gap-1.5">
                 <h3 className="text-2xl font-bold text-white">

@@ -49,7 +49,6 @@ const SOURCES = {
   broker: `${CDN}/product-page/pom-master-plan-before.png`,
   propsoch: `${CDN}/product-page/pom-master-plan-after.png`,
   avatar: `${CDN}/testimonial/roshik-shenoy.png`,
-  spectacles: `${CDN}/bromatkar_home_page/mobile/spectacles.png`,
 };
 
 /** Both plan images, at both widths, cover-cropped to this ratio. */
@@ -129,21 +128,6 @@ async function main() {
       `${avatar.info.width}x${avatar.info.height} ${(avatar.data.length / 1024).toFixed(1)}KB`
   );
 
-  // The spectacles graphic on the FAQ card. Decorative, so it keeps its alpha
-  // (it sits on orange, not white) and is rendered at 2x of its 160px slot.
-  const specSrc = await get(SOURCES.spectacles);
-  const specMeta = await sharp(specSrc).metadata();
-  const spectacles = await sharp(specSrc)
-    .resize({ width: 320, kernel: "lanczos3" })
-    .webp({ quality: 82, alphaQuality: 100, effort: 6 })
-    .toBuffer({ resolveWithObject: true });
-  await writeFile(path.join(OUT_DIR, "spectacles.webp"), spectacles.data);
-  total += spectacles.data.length;
-  console.log(
-    `  glasses   ${specMeta.width}x${specMeta.height} -> ` +
-      `${spectacles.info.width}x${spectacles.info.height} ${(spectacles.data.length / 1024).toFixed(1)}KB`
-  );
-
   const srcset = (key) =>
     plans[key].map((v) => `/plan/${v.file} ${v.width}w`).join(", ");
 
@@ -182,12 +166,6 @@ export const PROCESS_AVATAR = {
   src: "/plan/roshik-shenoy.webp",
   width: ${avatar.info.width},
   height: ${avatar.info.height},
-} as const;
-
-export const FAQ_SPECTACLES = {
-  src: "/plan/spectacles.webp",
-  width: ${spectacles.info.width},
-  height: ${spectacles.info.height},
 } as const;
 `;
 

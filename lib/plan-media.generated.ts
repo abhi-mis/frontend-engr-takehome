@@ -35,9 +35,3 @@ export const PROCESS_AVATAR = {
   width: 96,
   height: 96,
 } as const;
-
-export const FAQ_SPECTACLES = {
-  src: "/plan/spectacles.webp",
-  width: 320,
-  height: 157,
-} as const;
