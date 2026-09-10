@@ -47,8 +47,10 @@ import { useEffect } from "react";
  * hero's animation cost rather than leaving it running under the page.
  */
 
-/** One full lap. Must equal the `animation-duration` on .hero-route-car. */
-const CYCLE_MS = 11000;
+/** One full lap. Must equal the `animation-duration` on .hero-route-car.
+ *  11.6s, not 11s: the car pauses for a 0.6s thinking beat at the Propsoch
+ *  mark, then continues to the house before the loop resets. */
+const CYCLE_MS = 11600;
 
 /**
  * Where in the cycle the car's wheels reach each checkpoint, as a fraction,
@@ -56,11 +58,11 @@ const CYCLE_MS = 11000;
  * reset: the car has faded out and the next lap is about to start.
  */
 const MARKS = [
-  { at: 0.195, stage: 1 },
-  { at: 0.375, stage: 2 },
-  { at: 0.54, stage: 3 },
-  { at: 0.78, stage: 4 },
-  { at: 0.965, stage: 0 },
+  { at: 0.1849, stage: 1 },
+  { at: 0.3556, stage: 2 },
+  { at: 0.5121, stage: 3 },
+  { at: 0.7397, stage: 4 },
+  { at: 0.9668, stage: 0 },
 ] as const;
 
 export function RouteProgress() {

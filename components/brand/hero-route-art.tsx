@@ -336,9 +336,35 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
             <circle r="4.3" cy="-4.1" cx="10" />
             <circle className="hero-route-wheel-hub" r="1.45" cy="-4.1" cx="10" />
           </g>
+
+          {/* The "thinking" bubble.
+
+              Lives INSIDE the car group on purpose, not beside it: this way it
+              inherits the exact same offset-path transform the car uses to
+              follow the road, so it is guaranteed to sit over the roof at
+              every frame rather than needing a second set of coordinates kept
+              in sync by hand. It is invisible for the whole drive and pops up
+              only during the arrival hold, see @keyframes
+              propsoch-route-thinking in globals.css for the timing.
+
+              Coordinates are local to the car (which is drawn with its wheels
+              at y ~ -4 and its cabin roof at y ~ -21), so -19 to -41 sits
+              clear above the roof with the tail closing the gap between them. */}
+          <g className="hero-route-thinking">
+            <path className="hero-route-thinking-tail" d="M-4 -24 4 -24 0 -19Z" />
+            <rect
+              className="hero-route-thinking-bubble"
+              x="-15"
+              y="-41"
+              width="30"
+              height="17"
+              rx="8.5"
+            />
+            <circle className="hero-route-thinking-dot" cx="-6.5" cy="-32.5" r="1.9" />
+            <circle className="hero-route-thinking-dot" cx="0" cy="-32.5" r="1.9" />
+            <circle className="hero-route-thinking-dot" cx="6.5" cy="-32.5" r="1.9" />
+          </g>
         </g>
-
-
       </svg>
 
       <div className="hero-route-listing hero-route-listing--one">

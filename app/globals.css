@@ -196,6 +196,41 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Cursor, sitewide.
+
+   Tailwind 4's preflight matches the browser default for a native <button>,
+   which is `cursor: default`, not a pointer. That is correct for the
+   increment arrows on a number input, and wrong for everything this site
+   actually uses <button> for: the primary CTA, the FAQ accordion triggers,
+   the comparison and process tabs, the mobile nav toggle, the video play
+   button. All of those are links in function even where they are buttons in
+   markup, and a link-shaped control that shows the text cursor on hover reads
+   as broken before anyone has clicked anything.
+
+   ONE RULE, RATHER THAN cursor-pointer ON EVERY BUTTON.
+
+   Hunting down every <button> across components/ui/button.tsx,
+   PrimaryCta, the accordion, both tab strips and the mobile nav, and adding
+   the utility to each, is the kind of fix that is correct today and wrong the
+   day someone adds a ninth button and forgets the class. A tag selector
+   cannot be forgotten. `[role="button"]` is included for the same reason a
+   `<summary>` or a styled `<div>` standing in for one should not be exempt
+   either. This changes only the cursor; it is not a layout or paint property,
+   so it costs nothing to render and cannot shift anything.
+
+   Disabled controls are excluded, because a pointer over a control that
+   cannot be activated is a worse lie than the default arrow. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------------------
    shadcn semantic variables, pointed at the brand tokens above.
    This is what makes every shadcn component inherit Propsoch theming without
    editing the component files.
@@ -519,48 +554,61 @@
 
 /* The route scene's continuous motion is the little car completing its route.
    It moves with a motion path, not left/top, so it stays on the road by
-   construction. The brief pause at the door makes the loop read as a finished
+   construction. The pause at the door makes the loop read as a finished
    guided search rather than as a conveyor belt.
+
+   THE CYCLE IS 11.6s, NOT 11s.
+
+   It used to be a flat 11s and the arrival hold was 78%..96%, 1.98s. The hold
+   is now 2.58s, +0.6s, because at 1.98s the car barely settled before it was
+   fading again. Every keyframe BEFORE the arrival keeps the exact same
+   ABSOLUTE timing it always had (2145ms, 4125ms, 5940ms, 8580ms), so the
+   drive itself is not slower, only the stop at the end is longer. Only the
+   percentages moved, to make room for the extra time inside a still-100%
+   timeline.
 
    EVERY DISTANCE STOP HERE IS ALSO A CHECKPOINT TIME.
 
    The four percentages below are not eased-through midpoints, they are exact
-   keyframe boundaries: 22% of the road at 19.5% of the cycle, 46% at 37.5%,
-   68% at 54%, and the door at 78%. components/brand/route-progress.tsx holds
-   the same four numbers and marks each checkpoint as the car crosses it, so
-   putting them on boundaries means the tick lands on the car's wheels no
-   matter what easing runs between them. Change one here, change it there. */
+   keyframe boundaries: 22% of the road at 18.49% of the cycle, 46% at 35.56%,
+   68% at 51.21%, and the door at 73.97%. components/brand/route-progress.tsx
+   holds the same numbers (as fractions of its own CYCLE_MS) and marks each
+   checkpoint as the car crosses it, so putting them on boundaries means the
+   tick lands on the car's wheels no matter what easing runs between them.
+   Change one here, change both there: this file and that component's MARKS. */
 @keyframes propsoch-route-drive {
   0% {
     offset-distance: 0%;
     opacity: 0;
     animation-timing-function: ease-out;
   }
-  2% {
+  1.9% {
     offset-distance: 0%;
     opacity: 1;
     animation-timing-function: linear;
   }
-  19.5% {
+  18.49% {
     offset-distance: 22%;
     animation-timing-function: linear;
   }
-  37.5% {
+  35.56% {
     offset-distance: 46%;
     animation-timing-function: linear;
   }
-  54% {
+  51.21% {
     offset-distance: 68%;
     animation-timing-function: cubic-bezier(0.37, 0, 0.4, 1);
   }
-  /* Arrive, pause at the door, then fade for the loop. The pause is the point:
-     the graphic is about finding the house, so the car should look like it got
-     there rather than like it ran off the edge. */
-  78% {
+  /* Think at the Propsoch mark for exactly 600ms, then continue to the house. */
+  56.38% {
+    offset-distance: 68%;
+    opacity: 1;
+  }
+  73.97% {
     offset-distance: 100%;
     opacity: 1;
   }
-  96% {
+  96.68% {
     offset-distance: 100%;
     opacity: 1;
   }
@@ -570,17 +618,70 @@
   }
 }
 
-/* Shares the car's 11s cycle rather than spinning on its own 620ms loop, so
-   the wheels stop turning while the car is parked at the door. A car idling at
-   its destination with its wheels still spinning is a small thing that reads
-   as broken. */
+/* The car stops its wheels during the logo hold, then spins again on the way
+   to the house. */
 @keyframes propsoch-route-wheel {
   0% {
     transform: rotate(0deg);
   }
-  78%,
-  100% {
+  51.21%,
+  56.38% {
     transform: rotate(7200deg);
+  }
+  73.97%,
+  100% {
+    transform: rotate(10800deg);
+  }
+}
+
+/* The thinking bubble uses only the 600ms logo hold, never the house arrival. */
+@keyframes propsoch-route-thinking {
+  0%,
+  51.2% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.7);
+  }
+  51.21% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  56.38% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  56.39%,
+  100% {
+    opacity: 0;
+    transform: translateY(4px) scale(0.7);
+  }
+}
+
+/* Keep the old keyframe names below out of the stylesheet's active cascade. */
+/*
+  96.21% {
+    offset-distance: 100%;
+    opacity: 1;
+  }
+  100% {
+    offset-distance: 100%;
+    opacity: 0;
+  }
+*/
+
+/* The three dots inside it, pulsing in sequence. Same "someone is composing a
+   reply" motif as the three dots in the FAQ card's question bubble
+   (components/sections/faq.tsx), reused rather than a new one invented for
+   this one spot. animation-delay staggers the three; the keyframe itself is
+   shared. */
+@keyframes propsoch-thinking-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-1.5px);
   }
 }
 
@@ -831,6 +932,12 @@
 .hero-route-art[data-stage="3"] .hero-route-step[data-step="4"],
 .hero-route-art:is([data-stage="0"], [data-stage="1"], [data-stage="2"]) .hero-route-pin {
   --done: 0;
+}
+
+/* Stage four is the house arrival. Make the final checkpoint explicit so the
+   house tick cannot remain in its stage-three waiting state. */
+.hero-route-art[data-stage="4"] .hero-route-probe[data-step="4"] {
+  --done: 1;
 }
 
 /* The post the signal stands on. It dims with the rest of the marker rather
@@ -1189,7 +1296,9 @@
   transform-box: view-box;
   transform-origin: 0 0;
   opacity: 0;
-  animation: propsoch-route-drive 11s linear infinite;
+  /* 11.6s: the +0.6s arrival hold. See the long comment on
+     @keyframes propsoch-route-drive for exactly where that time went. */
+  animation: propsoch-route-drive 11.6s linear infinite;
   will-change: offset-distance;
 }
 
@@ -1229,7 +1338,7 @@
   fill: var(--color-ink);
   transform-box: fill-box;
   transform-origin: center;
-  animation: propsoch-route-wheel 11s linear infinite;
+  animation: propsoch-route-wheel 11.6s linear infinite;
 }
 
 /* The hub is what makes the spin readable. A plain dark circle rotating looks
@@ -1238,13 +1347,61 @@
   fill: var(--color-surface);
 }
 
+/* ---------------------------------------------------------------------------
+   The "thinking" beat.
+
+   A small three dot bubble that appears over the car for exactly the arrival
+   hold and nothing more. It is a `<g>` inside .hero-route-car in the
+   component, so it inherits the car's own offset-path transform: wherever the
+   car is, the bubble is directly above it, by construction rather than by a
+   second set of coordinates kept in sync by hand.
+
+   COST: this adds three more elements to an SVG that is already animating
+   continuously, and nothing else. Every property here is opacity or
+   transform, so every frame of it is compositor only, exactly like the car
+   and the wheels. It shares the car's own animation-duration rather than
+   starting a second timer, and it is included in the data-paused rule below,
+   so it costs precisely zero when the hero is off screen.
+--------------------------------------------------------------------------- */
+.hero-route-thinking {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: propsoch-route-thinking 11.6s linear infinite;
+}
+
+.hero-route-thinking-bubble {
+  fill: #fff;
+  filter: drop-shadow(0 3px 5px rgb(33 33 48 / 0.22));
+}
+
+.hero-route-thinking-tail {
+  fill: #fff;
+}
+
+.hero-route-thinking-dot {
+  fill: var(--color-brand-strong);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: propsoch-thinking-dot 900ms ease-in-out infinite;
+}
+
+.hero-route-thinking-dot:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.hero-route-thinking-dot:nth-child(3) {
+  animation-delay: 300ms;
+}
+
 /* Off screen or in a background tab, the scene stops costing anything.
    RouteProgress sets this from an IntersectionObserver and from
    visibilitychange and stops its own timer at the same moment, so scrolling
    past the fold ends the hero's animation work rather than leaving it running
    under the rest of the page. */
 .hero-route-art[data-paused] .hero-route-car,
-.hero-route-art[data-paused] .hero-route-wheel {
+.hero-route-art[data-paused] .hero-route-wheel,
+.hero-route-art[data-paused] .hero-route-thinking,
+.hero-route-art[data-paused] .hero-route-thinking-dot {
   animation-play-state: paused;
 }
 
@@ -1958,7 +2115,9 @@
 
 @media (prefers-reduced-motion: reduce) {
   .hero-route-car,
-  .hero-route-wheel {
+  .hero-route-wheel,
+  .hero-route-thinking,
+  .hero-route-thinking-dot {
     animation: none;
     transition: none;
     transform: none;
@@ -1972,6 +2131,16 @@
   .hero-route-car {
     offset-distance: 58%;
     opacity: 1;
+  }
+
+  /* The car is parked mid-route rather than at the door, so the thinking
+     bubble has nothing to attach to. Its own opacity keyframe would already
+     resolve to 0 with the animation stopped, since 0% is its first frame, but
+     stated outright rather than relied on: a bubble floating over a car parked
+     in the middle of a road with no animation running to explain it would be a
+     stray shape, not a still image that reads. */
+  .hero-route-thinking {
+    opacity: 0;
   }
 
   /* The typewriter stops entirely rather than being duration-collapsed. The

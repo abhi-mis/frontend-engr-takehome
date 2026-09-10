@@ -20,11 +20,16 @@ import {
  *
  * Structure, top to bottom:
  *
- *   1. A dark closing panel: the brand, the real value proposition, the primary
+ *   1. Five content columns of the original's real footer content.
+ *   2. A legal strip: entity, both RERA registrations, and the rebuild notice.
+ *   3. A dark closing panel: the brand, the real value proposition, the primary
  *      action, and the Bromatker mark. The page's one dark surface, so it reads
- *      as an ending rather than as another section.
- *   2. Five content columns of the original's real footer content.
- *   3. A legal strip: entity, both RERA registrations, and the rebuild notice.
+ *      as an ending rather than as another section, and it sits LAST, at the
+ *      true bottom of the page, rather than above the content columns. It used
+ *      to open the footer, which put the page's one moment of closure before
+ *      five columns of links and a legal strip, so the actual last thing a
+ *      reader saw was fine print. Now the fine print resolves into the
+ *      signature instead.
  *
  * THE DARK PANEL AND CONTRAST
  *
@@ -54,57 +59,9 @@ export function SiteFooter() {
   return (
     <footer className="bg-surface">
       {/* ------------------------------------------------------------------
-          1. The closing panel.
+          1. Content columns.
       ------------------------------------------------------------------ */}
-      <div className="mx-auto w-full max-w-[1200px] px-4 pt-14 sm:px-6">
-        <div className="relative isolate overflow-hidden rounded-panel bg-ink px-6 py-10 shadow-lg sm:px-10 sm:py-12">
-          {/* Ambient brand glow. Pure CSS, drifts slowly, clipped by the
-              panel's overflow. */}
-          <div
-            aria-hidden
-            className="animate-drift pointer-events-none absolute top-[-40%] right-[-10%] -z-10 size-[30rem] rounded-full bg-[color-mix(in_oklch,var(--color-brand)_38%,transparent)] blur-[80px]"
-          />
-
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
-            <div className="max-w-xl">
-              {/* On the dark panel the brand orange is finally legible as
-                  small text, at 5.66:1. */}
-              <p className="text-xs font-bold tracking-[0.14em] text-brand uppercase">
-                Guided Homebuying
-              </p>
-              <p className="mt-3 text-2xl font-bold text-surface">
-                {HERO.valueProp}
-              </p>
-
-              {/* The wordmark in the brand orange, which only works because
-                  this panel is dark: #FF6D33 is 5.65:1 on --color-ink and
-                  2.71:1 on the light page. At `text-surface/70` it read as
-                  washed-out grey and wasted the one surface where the real
-                  orange is legible as text. */}
-              <p className="mt-5 text-3xl text-brand sm:text-4xl">
-                <Bromatker />
-              </p>
-            </div>
-
-            <div className="flex shrink-0 flex-col items-start gap-3">
-              <PrimaryCta size="lg" withArrow className="lift">
-                {HERO.primaryCta}
-              </PrimaryCta>
-              {/* Sourced from TRUSTED_BY rather than typed inline, so the
-                  employer names live in exactly one place. */}
-              <p className="max-w-[16rem] text-xs leading-relaxed text-surface/65">
-                {HERO.trustedByLabel} {TRUSTED_BY.slice(0, 3).join(", ")} and
-                more
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ------------------------------------------------------------------
-          2. Content columns.
-      ------------------------------------------------------------------ */}
-      <div className="mx-auto w-full max-w-[1200px] px-4 py-14 sm:px-6">
+      <div className="mx-auto w-full max-w-[1200px] px-4 pt-14 pb-12 sm:px-6">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-5">
           <div className="flex flex-col gap-4 sm:col-span-2 lg:col-span-1">
             <Logo width={124} decorative />
@@ -215,7 +172,7 @@ export function SiteFooter() {
         </div>
 
         {/* ----------------------------------------------------------------
-            3. Legal strip.
+            2. Legal strip.
         ---------------------------------------------------------------- */}
         <div className="mt-12 flex flex-col gap-6 border-t border-line pt-8 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex flex-col gap-3">
@@ -256,6 +213,61 @@ export function SiteFooter() {
           <p className="max-w-md text-xs leading-relaxed text-ink-muted lg:text-right">
             {REBUILD_NOTICE}
           </p>
+        </div>
+      </div>
+
+      {/* ------------------------------------------------------------------
+          3. The closing panel. The literal last thing on the page.
+
+          Same panel as before, moved rather than rebuilt: the dark surface,
+          the ambient glow, the value proposition, the CTA and the Bromatker
+          mark are unchanged, because the design already read as a signature,
+          it was just signing the page in the wrong place. `pb-14` on this
+          wrapper is the page's actual bottom margin now, in place of the
+          `pt-14` it carried when something else closed the page beneath it.
+      ------------------------------------------------------------------ */}
+      <div className="mx-auto w-full max-w-[1200px] px-4 pb-14 sm:px-6">
+        <div className="relative isolate overflow-hidden rounded-panel bg-ink px-6 py-10 shadow-lg sm:px-10 sm:py-12">
+          {/* Ambient brand glow. Pure CSS, drifts slowly, clipped by the
+              panel's overflow. */}
+          <div
+            aria-hidden
+            className="animate-drift pointer-events-none absolute top-[-40%] right-[-10%] -z-10 size-[30rem] rounded-full bg-[color-mix(in_oklch,var(--color-brand)_38%,transparent)] blur-[80px]"
+          />
+
+          <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
+            <div className="max-w-xl">
+              {/* On the dark panel the brand orange is finally legible as
+                  small text, at 5.66:1. */}
+              <p className="text-xs font-bold tracking-[0.14em] text-brand uppercase">
+                Guided Homebuying
+              </p>
+              <p className="mt-3 text-2xl font-bold text-surface">
+                {HERO.valueProp}
+              </p>
+
+              {/* The wordmark in the brand orange, which only works because
+                  this panel is dark: #FF6D33 is 5.65:1 on --color-ink and
+                  2.71:1 on the light page. At `text-surface/70` it read as
+                  washed-out grey and wasted the one surface where the real
+                  orange is legible as text. */}
+              <p className="mt-5 text-3xl text-brand sm:text-4xl">
+                <Bromatker />
+              </p>
+            </div>
+
+            <div className="flex shrink-0 flex-col items-start gap-3">
+              <PrimaryCta size="lg" withArrow className="lift">
+                {HERO.primaryCta}
+              </PrimaryCta>
+              {/* Sourced from TRUSTED_BY rather than typed inline, so the
+                  employer names live in exactly one place. */}
+              <p className="max-w-[16rem] text-xs leading-relaxed text-surface/65">
+                {HERO.trustedByLabel} {TRUSTED_BY.slice(0, 3).join(", ")} and
+                more
+              </p>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
