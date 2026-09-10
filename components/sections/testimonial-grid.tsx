@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Dialog } from "radix-ui";
-import { CrossIcon, PlayIcon } from "@/components/icons";
+import { PlayIcon } from "@/components/icons";
 import { POSTERS } from "@/lib/posters.generated";
 import type { Testimonial } from "@/lib/content";
 
@@ -70,26 +69,9 @@ interface TestimonialGridProps {
 }
 
 export function TestimonialGrid({ items }: TestimonialGridProps) {
-  const [active, setActive] = useState<Testimonial | null>(null);
+  const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+  const [featuredIndex, setFeaturedIndex] = useState(0);
   const gridRef = useRef<HTMLUListElement>(null);
-  /**
-   * The play button that opened the dialog, so focus can be put back on it.
-   *
-   * Radix restores focus on close by itself and normally that is enough. It is
-   * not enough here, and this was found by testing rather than by reading: open
-   * a video, press Escape, and focus lands on BODY instead of the button.
-   *
-   * The cause is the cross-origin iframe. Once the player loads it takes focus
-   * inside itself, and from outside the iframe there is nothing readable there,
-   * so the focus scope has no in-scope element to return from and gives up.
-   * The result for a keyboard user is being dumped at the top of the document
-   * and having to tab all the way back down to where they were.
-   *
-   * onCloseAutoFocus is the sanctioned place to override this: preventDefault
-   * stops Radix's own attempt and we do it ourselves, at exactly the moment it
-   * would have.
-   */
-  const lastTriggerRef = useRef<HTMLButtonElement | null>(null);
 
   useEffect(() => {
     const el = gridRef.current;
@@ -120,31 +102,71 @@ export function TestimonialGrid({ items }: TestimonialGridProps) {
     return () => observer.disconnect();
   }, []);
 
+  const featured = items[featuredIndex];
+  const featuredNames = featured.people.map((person) => person.name).join(" & ");
+  const showTestimonial = (index: number) => {
+    setPlayingIndex(null);
+    setFeaturedIndex(index);
+  };
+  const selectPrevious = () => {
+    setPlayingIndex(null);
+    setFeaturedIndex((current) => (current - 1 + items.length) % items.length);
+  };
+  const selectNext = () => {
+    setPlayingIndex(null);
+    setFeaturedIndex((current) => (current + 1) % items.length);
+  };
+
   return (
     <>
       <ul
         ref={gridRef}
-        className="mt-12 grid gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3"
+        className="testimonial-showcase mt-12 sm:mt-14"
       >
-        {items.map((item) => {
+        {items.map((item, index) => {
           const poster = POSTERS[item.youtubeId];
           const names = item.people.map((p) => p.name).join(" and ");
+          let distance = index - featuredIndex;
+          if (distance > 1) distance -= items.length;
+          if (distance < -1) distance += items.length;
+          const position = distance === 0 ? "active" : distance < 0 ? "previous" : "next";
 
           return (
-            <li key={item.youtubeId}>
-              <figure className="flex h-full flex-col">
+            <li
+              key={item.youtubeId}
+              data-position={position}
+              className="testimonial-item min-w-0"
+              aria-hidden={position === "active" ? undefined : true}
+            >
+              <figure className="testimonial-card flex h-full flex-col">
                 {/* The whole poster is the control, not a small badge on top of
                     it. A 373x210 target is a great deal easier to hit than a
                     56px circle, and there is nothing else inside it to click. */}
-                <button
-                  type="button"
-                  onClick={(event) => {
-                    lastTriggerRef.current = event.currentTarget;
-                    setActive(item);
-                  }}
-                  aria-label={`Play the video testimonial from ${names}`}
-                  className="group/play relative block w-full overflow-hidden rounded-card bg-ink shadow-md transition-shadow hover:shadow-lg"
-                >
+                {playingIndex === index ? (
+                  <div className="testimonial-inline-player aspect-video w-full overflow-hidden rounded-card bg-ink shadow-lg">
+                    <iframe
+                      src={`https://www.youtube-nocookie.com/embed/${item.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
+                      title={`Video testimonial from ${names}`}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allowFullScreen
+                      className="h-full w-full border-0"
+                    />
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (position !== "active") {
+                        showTestimonial(index);
+                        return;
+                      }
+                      setPlayingIndex(index);
+                    }}
+                    tabIndex={position === "active" ? 0 : -1}
+                    aria-label={position === "active" ? `Play the video testimonial from ${names}` : `Show the testimonial from ${names}`}
+                    className="testimonial-poster group/play relative block w-full overflow-hidden rounded-card bg-ink shadow-lg"
+                  >
                   <img
                     src={poster.src}
                     // Empty alt on purpose. The button already carries the full
@@ -183,7 +205,7 @@ export function TestimonialGrid({ items }: TestimonialGridProps) {
                         (1.09 against 1.03) on purpose. Two elements moving at
                         different rates read as depth; the same rate reads as
                         one flat image being resized. */}
-                    <span className="flex size-14 items-center justify-center rounded-full bg-brand text-on-brand shadow-lg transition-transform duration-[260ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] group-hover/play:scale-[1.09] group-active/play:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover/play:scale-100 motion-reduce:group-active/play:scale-100">
+                    <span className="testimonial-play flex size-14 items-center justify-center rounded-full bg-brand text-on-brand shadow-lg transition-transform duration-[260ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] group-hover/play:scale-[1.09] group-active/play:scale-[1.02] motion-reduce:transition-none motion-reduce:group-hover/play:scale-100 motion-reduce:group-active/play:scale-100">
                       {/* Nudged right by a hair: a triangle's optical centre is
                           left of its bounding box, so a centred play glyph
                           always looks like it is sliding backwards.
@@ -201,14 +223,15 @@ export function TestimonialGrid({ items }: TestimonialGridProps) {
                       />
                     </span>
                   </span>
-                </button>
+                  </button>
+                )}
 
-                <figcaption className="mt-5 flex flex-1 flex-col">
-                  <blockquote className="flex-1 text-base leading-[1.55] text-ink">
+                <figcaption className="testimonial-caption mt-5 flex flex-1 flex-col">
+                  <blockquote className="testimonial-quote flex-1 text-[0.98rem] leading-[1.65] text-ink sm:text-base">
                     <p>{`“${item.quote}”`}</p>
                   </blockquote>
 
-                  <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  <div className="testimonial-people mt-5 flex flex-wrap items-start gap-x-3 gap-y-3">
                     {item.people.map((person, i) => (
                       <span key={person.name} className="flex items-center gap-3">
                         {i > 0 && (
@@ -220,7 +243,7 @@ export function TestimonialGrid({ items }: TestimonialGridProps) {
                           <span className="text-sm font-semibold text-ink">
                             {person.name}
                           </span>
-                          <span className="text-xs text-ink-muted">
+                          <span className="text-xs leading-5 text-ink-muted">
                             {person.role}
                           </span>
                         </span>
@@ -234,75 +257,46 @@ export function TestimonialGrid({ items }: TestimonialGridProps) {
         })}
       </ul>
 
-      {/* The player.
-          Radix Dialog rather than a hand-rolled overlay, because the things it
-          does are the things hand-rolled overlays get wrong: focus moves in and
-          is trapped, Escape closes, the rest of the page goes inert and
-          aria-hidden, body scroll locks, and focus returns to the button that
-          opened it. Radix is already in this bundle for the tabs and the
-          slider, so the marginal cost is small.
+      <div className="testimonial-carousel-controls">
+        <button type="button" onClick={selectPrevious} className="testimonial-arrow" aria-label="Previous testimonial">
+          <span aria-hidden>←</span>
+        </button>
+        <div className="testimonial-dots" aria-label="Choose a testimonial">
+          {items.map((item, index) => (
+            <button
+              key={item.youtubeId}
+              type="button"
+              onClick={() => showTestimonial(index)}
+              aria-label={`Show testimonial ${index + 1}`}
+              aria-current={index === featuredIndex ? "true" : undefined}
+              className="testimonial-dot"
+            />
+          ))}
+        </div>
+        <button type="button" onClick={selectNext} className="testimonial-arrow" aria-label="Next testimonial">
+          <span aria-hidden>→</span>
+        </button>
+      </div>
 
-          `active &&` is what makes this a facade rather than a hidden embed:
-          when nothing is selected there is no iframe in the tree at all. */}
-      <Dialog.Root
-        open={active !== null}
-        onOpenChange={(open) => {
-          if (!open) setActive(null);
-        }}
-      >
-        <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-[120] bg-[rgba(20,20,30,0.72)] backdrop-blur-sm data-[state=open]:animate-[propsoch-fade-in_180ms_ease-out]" />
+      <div className="testimonial-story" aria-live="polite">
+        <p className="testimonial-story-kicker">Homebuyer story</p>
+        <blockquote className="testimonial-featured-quote">
+          <p>{`“${featured.quote}”`}</p>
+        </blockquote>
+        <div className="testimonial-featured-people">
+          {featured.people.map((person, index) => (
+            <span key={person.name} className="flex items-start gap-3">
+              {index > 0 && <span aria-hidden className="text-brand-strong">&amp;</span>}
+              <span className="flex flex-col">
+                <span className="text-sm font-semibold text-ink">{person.name}</span>
+                <span className="text-xs leading-5 text-ink-muted">{person.role}</span>
+              </span>
+            </span>
+          ))}
+        </div>
+        <p className="sr-only">Currently showing the story from {featuredNames}.</p>
+      </div>
 
-          <Dialog.Content
-            onCloseAutoFocus={(event) => {
-              event.preventDefault();
-              lastTriggerRef.current?.focus();
-            }}
-            className="fixed top-1/2 left-1/2 z-[130] w-[min(96vw,60rem)] -translate-x-1/2 -translate-y-1/2 focus:outline-none"
-          >
-            {active && (
-              <>
-                <div className="flex items-start justify-between gap-4 pb-3">
-                  <Dialog.Title className="text-sm font-semibold text-surface">
-                    {active.people.map((p) => p.name).join(" & ")}
-                  </Dialog.Title>
-
-                  <Dialog.Close
-                    aria-label="Close the video"
-                    className="-mt-1 flex size-9 shrink-0 items-center justify-center rounded-full bg-surface/15 text-surface transition-colors hover:bg-surface/25 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-surface"
-                  >
-                    <CrossIcon aria-hidden className="size-5" />
-                  </Dialog.Close>
-                </div>
-
-                {/* Radix wants a description or an explicit opt-out. The video
-                    is the description, and the title above already names the
-                    speakers, so an invisible paragraph repeating the quote
-                    would just be noise read out on open. */}
-                <Dialog.Description className="sr-only">
-                  {`Video testimonial. ${active.quote}`}
-                </Dialog.Description>
-
-                <div className="aspect-video w-full overflow-hidden rounded-card bg-ink shadow-lg">
-                  <iframe
-                    // autoplay is user-initiated: they pressed a play button to
-                    // get here, so this is the expected behaviour rather than
-                    // the kind media autoplay policies exist to stop.
-                    src={`https://www.youtube-nocookie.com/embed/${active.youtubeId}?autoplay=1&rel=0&modestbranding=1`}
-                    title={`Video testimonial from ${active.people
-                      .map((p) => p.name)
-                      .join(" and ")}`}
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    referrerPolicy="strict-origin-when-cross-origin"
-                    allowFullScreen
-                    className="h-full w-full border-0"
-                  />
-                </div>
-              </>
-            )}
-          </Dialog.Content>
-        </Dialog.Portal>
-      </Dialog.Root>
     </>
   );
 }

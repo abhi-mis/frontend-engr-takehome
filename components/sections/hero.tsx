@@ -1,4 +1,4 @@
-import { HeroArt } from "@/components/brand/hero-art";
+import { HeroRouteArt } from "@/components/brand/hero-route-art";
 import { PrimaryCta } from "@/components/primary-cta";
 import { HERO, STATS } from "@/lib/content";
 import { TRUST_LOGOS } from "@/lib/logos.generated";
@@ -44,7 +44,7 @@ import { TRUST_LOGOS } from "@/lib/logos.generated";
  */
 export function Hero() {
   return (
-    <section className="relative isolate overflow-hidden">
+    <section className="hero-home relative isolate overflow-hidden">
       {/* --------------------------------------------------------------
           Background. Three layers, all CSS, no image, so nothing here can
           compete with the headline to become the LCP element.
@@ -84,13 +84,8 @@ export function Hero() {
           pill gone the headline is the first thing in the column, so the old
           pt-12/16/20 left it floating in dead space instead of opening the
           page. */}
-      <div className="mx-auto grid w-full max-w-[1280px] grid-cols-1 items-center gap-12 px-4 pt-7 pb-4 sm:px-6 sm:pt-9 lg:grid-cols-[minmax(0,1.04fr)_minmax(390px,0.96fr)] lg:gap-12 lg:px-10 lg:pt-12 lg:pb-8 xl:gap-20">
-        <div className="relative flex flex-col items-start lg:pb-2">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute -top-12 -left-10 hidden h-44 w-44 rounded-full border border-brand-soft/40 lg:block"
-          />
-
+      <div className="hero-home-layout mx-auto grid w-full max-w-[1340px] grid-cols-1 items-center gap-8 px-5 pt-7 pb-6 sm:px-8 sm:pt-10 lg:grid-cols-[minmax(0,0.94fr)_minmax(460px,1.06fr)] lg:gap-8 lg:px-10 lg:pt-14 lg:pb-10 xl:gap-14">
+        <div className="hero-home-copy relative flex flex-col items-start lg:pb-2">
           {/* The headline.
 
               THE LCP RULE, AND WHERE THE TYPEWRITER SITS RELATIVE TO IT
@@ -117,7 +112,7 @@ export function Hero() {
               sentence, "Blindly trusting a broker's Sales Pitch? Fake Claims?
               Half Info?", instead of a headline that rewrites itself every 3.2
               seconds. */}
-          <h1 className="max-w-3xl text-4xl leading-[1.02] font-bold tracking-[-0.045em] text-ink sm:text-5xl lg:text-[clamp(3.6rem,4.35vw,4.75rem)]">
+          <h1 className="hero-home-heading max-w-3xl text-4xl leading-[0.99] font-bold tracking-[-0.055em] text-ink sm:text-5xl lg:text-[clamp(3.85rem,4.5vw,5rem)]">
             <span className="block">{HERO.headlineLead}</span>
 
             <span className="type-line mt-2 text-brand-display">
@@ -158,7 +153,7 @@ export function Hero() {
 
           {/* 3. One primary action, with a clearly subordinate secondary. */}
           <div
-            className="animate-rise mt-9 flex flex-wrap items-center gap-x-6 gap-y-3"
+            className="hero-home-actions animate-rise mt-9 flex flex-wrap items-center gap-x-6 gap-y-3"
             style={{ "--delay": "160ms" } as React.CSSProperties}
           >
             <PrimaryCta size="lg" withArrow className="lift shadow-sm">
@@ -175,16 +170,18 @@ export function Hero() {
 
           {/* 4. The real numbers, as chips so the orange gets another fill. */}
           <dl
-            className="animate-rise mt-12 grid w-full max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4"
+            className="hero-home-stats animate-rise mt-12 grid w-full max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4"
             style={{ "--delay": "240ms" } as React.CSSProperties}
           >
             {STATS.map((stat) => (
               <div
                 key={stat.label}
-                className="hero-stat-card lift rounded-card px-3.5 py-3.5"
+                className="hero-stat-card rounded-card px-3.5 py-3.5"
               >
-                <dd className="text-2xl font-bold text-ink">{stat.value}</dd>
-                <dt className="mt-0.5 text-xs leading-snug text-ink-muted">
+                <dd className="hero-stat-value text-2xl font-bold text-ink">
+                  {stat.value}
+                </dd>
+                <dt className="hero-stat-label mt-1 text-xs leading-[1.25] font-medium text-ink-muted">
                   {stat.label}
                 </dt>
               </div>
@@ -195,6 +192,13 @@ export function Hero() {
         {/* The artwork.
 
             HIDDEN OUTRIGHT BELOW lg, not scaled down and not merely invisible.
+
+            This comment was true of the intent and false of the code: the
+            `hidden lg:flex` had gone, and the stage rendered 305x300 on a 360px
+            screen behind a comment saying it did not. The mobile-only heights
+            it carried (h-[300px] sm:h-[390px]) are gone with it, because a dead
+            class that describes mobile sizing sitting next to a comment saying
+            there is no mobile rendering is the same lie twice.
             `hidden` is display:none, so it costs no layout box, no paint and no
             animation frames on a phone, and its subtree leaves the
             accessibility tree with it. On a 360px screen it was a decorative
@@ -204,67 +208,41 @@ export function Hero() {
             Inline SVG, so it costs no request either way, and its fixed viewBox
             reserves its own space so it cannot shift layout. */}
         <div
-          className="hero-stage animate-rise relative isolate mx-auto hidden min-h-[410px] w-full max-w-[520px] items-center justify-center justify-self-center sm:min-h-[500px] lg:flex"
+          className="hero-route-stage animate-rise relative isolate mx-auto hidden h-[600px] w-full max-w-[660px] items-center justify-center justify-self-center lg:flex"
           style={{ "--delay": "320ms" } as React.CSSProperties}
         >
           <div
             aria-hidden
-            className="hero-stage-glow absolute inset-[10%] rounded-full bg-[color-mix(in_oklch,var(--color-brand)_22%,transparent)] blur-[70px]"
+            className="hero-route-stage-glow absolute inset-[8%] rounded-full bg-[color-mix(in_oklch,var(--color-brand)_19%,transparent)] blur-[76px]"
           />
           <div
             aria-hidden
-            className="hero-stage-grid absolute inset-[4%] rounded-[3rem] opacity-60"
+            className="hero-route-stage-grid absolute inset-[1%] rounded-[3rem] opacity-65"
           />
           <div
             aria-hidden
-            className="hero-stage-orbit absolute inset-[8%] rounded-full border border-dashed border-brand-soft/55"
+            className="hero-route-stage-orbit absolute inset-[5%] rounded-[3rem] border border-dashed border-brand-soft/55"
           />
           <div
             aria-hidden
-            className="absolute inset-[18%] rounded-full border border-white/70 shadow-[inset_0_0_60px_rgba(255,255,255,0.6)]"
+            className="absolute inset-[14%] rounded-[3rem] border border-white/70 shadow-[inset_0_0_60px_rgba(255,255,255,0.6)]"
           />
-          <div className="hero-stage-shell relative z-10 w-full max-w-[430px]">
-            <HeroArt className="h-auto w-full" />
+          <div className="hero-route-shell relative z-10 h-full w-full">
+            <HeroRouteArt className="h-full w-full" />
 
-            {/* Floating figure card, pinned to the funnel's narrow end.
-                Uses Propsoch's real published average saving, and the "~" is
-                theirs too. It gives the artwork a focal point and explains what
-                the narrowing is FOR, rather than leaving the diagram to be read
-                as decoration. Floats on its own slow cycle. */}
-            <div
-              className="animate-float absolute right-0 bottom-[16%] rounded-card bg-surface-raised/95 px-3.5 py-2.5 shadow-lg backdrop-blur-sm sm:right-[-5%]"
-              style={
-                { "--dur": "8s", "--delay": "900ms" } as React.CSSProperties
-              }
-            >
-              <p className="text-[0.65rem] font-bold tracking-wide text-ink-muted uppercase">
-                Average saved
-              </p>
-              <p className="text-lg font-bold text-ink tabular-nums">
-                ~₹4.78 L
-              </p>
-            </div>
+            {/* The two floating figure cards that used to sit here are
+                gone. They read "Curated on 20+ factors" and "Average
+                saved ~Rs 4.78 L", both real Propsoch numbers, and both
+                already stated in words further down the page: the
+                curation figure in the comparison table and the process
+                step, the saving in the calculator, where it carries the
+                illustrative-estimate note it needs.
 
-            {/* And one on the narrowing, naming what the funnel does.
-                Sits at 28% rather than at the top: at the top it covered one of
-                the seven cards, which is the exact thing the graphic is
-                counting. The figure is "20+ factors" rather than "700+" because
-                700+ already appears in the stat chips directly below, and
-                labelling the CURATION rather than the count adds information
-                instead of repeating it. Both numbers are Propsoch's own. */}
-            <div
-              className="animate-float absolute top-[27%] left-0 rounded-card bg-surface-raised/95 px-3.5 py-2.5 shadow-lg backdrop-blur-sm sm:left-[-5%]"
-              style={
-                { "--dur": "7s", "--delay": "1200ms" } as React.CSSProperties
-              }
-            >
-              <p className="text-[0.65rem] font-bold tracking-wide text-ink-muted uppercase">
-                Curated on
-              </p>
-              <p className="text-lg font-bold text-ink tabular-nums">
-                20+ factors
-              </p>
-            </div>
+                Saying them again as labels floating over a diagram made
+                the artwork explain itself in text. The graphic now makes
+                the same two points visually instead, which is what an
+                illustration is for: three listings with one shortlisted,
+                and a verified home at the end of the route. */}
           </div>
         </div>
       </div>

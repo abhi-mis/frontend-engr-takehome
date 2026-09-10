@@ -139,11 +139,28 @@ export const STATS: readonly Stat[] = [
 // Comparison
 // ---------------------------------------------------------------------------
 
+/** One line of a comparison: what you care about, and the two answers. */
 export interface ComparisonRow {
   readonly criteria: string;
   readonly propsoch: string;
-  readonly localBrokers: string;
-  readonly onlinePortals: string;
+  /** The competitor's answer, for whichever table this row belongs to. */
+  readonly other: string;
+}
+
+/** One tab: a competitor, and the criteria Propsoch compares against them on. */
+export interface ComparisonSet {
+  readonly id: string;
+  readonly tabLabel: string;
+  readonly columnLabel: string;
+  /**
+   * Their parenthetical under the online portals header. Verbatim, and worth
+   * keeping: "online portals" is vague, while naming Housing, 99Acres and
+   * Magicbricks is a specific claim they are willing to put their name to.
+   */
+  readonly columnNote?: string;
+  /** Screen reader caption for this table. */
+  readonly caption: string;
+  readonly rows: readonly ComparisonRow[];
 }
 
 export const COMPARISON = {
@@ -161,14 +178,11 @@ export const COMPARISON = {
   heading: "How are we different?",
   /** Verbatim sub label above the tabs. */
   subheading: "Compare our services with",
-  /** Verbatim column headers. */
+  /** Verbatim column headers. Each competitor's header lives on its own set. */
   criteriaHeader: "What you care about",
   propsochHeader: "Propsoch",
-  localBrokersHeader: "Local brokers",
-  onlinePortalsHeader: "Online portals",
-  /** Screen reader only caption for the desktop table. */
-  caption:
-    "Propsoch compared with local brokers and online property portals across nine criteria",
+  /** Mine. Their tab strip has no accessible name at all. */
+  tabsLabel: "Choose who to compare Propsoch with",
 } as const;
 
 /**
@@ -180,60 +194,65 @@ export const COMPARISON = {
  * competitors, these describe how a listings marketplace works structurally.
  * Approved wording, plan section 5.3.
  */
-export const COMPARISON_ROWS: readonly ComparisonRow[] = [
+/**
+ * PROPSOCH SHIPS TWO TABLES, NOT ONE, AND THIS BUILD USED TO GET THAT WRONG.
+ *
+ * Their "How are we different?" section has a tab per competitor, and each tab
+ * is its OWN table with its OWN criteria. The two do not share a row set:
+ * comparing against portals is an argument about DATA (depth, accuracy,
+ * sources) and comparing against brokers is an argument about CONDUCT
+ * (pressure, spam, support). Only "Transparency" appears in both, and there it
+ * is worded identically.
+ *
+ * What this build shipped before was ONE nine row table with a third column for
+ * online portals that I had WRITTEN MYSELF, by taking their nine broker
+ * criteria and inventing a portal answer for each. Seven of those nine cells
+ * were mine: "Lead form, then calls from multiple agents", "Ranked by paid
+ * placement, not fit", "Your number is shared with every listed agent" and so
+ * on. They are plausible, and they are not Propsoch's. Inventing criticism of
+ * named competitors and presenting it as a client's own comparison is exactly
+ * the sort of content this project is not allowed to make up.
+ *
+ * It also hid their real argument. "80+ data points against 20-40", "verified
+ * by architects against loose verification", "RERA, GMaps, CDP" against "added
+ * by developer & broker" is sharper and more specific than anything I wrote,
+ * and none of it was on the page.
+ *
+ * Both tables are verbatim from their own difference.data.tsx. The one change
+ * is a trailing space trimmed from "Added by developer & broker ".
+ */
+export const COMPARISON_SETS: readonly ComparisonSet[] = [
   {
-    criteria: "Sales Practices",
-    propsoch: "Consultative, no pressure",
-    localBrokers: "High pressure sales tactics",
-    onlinePortals: "Lead form, then calls from multiple agents",
+    id: "online-portals",
+    tabLabel: "Online portals",
+    columnLabel: "Online portals",
+    columnNote: "(Housing/99Acres/Magicbricks)",
+    caption:
+      "Propsoch compared with online property portals across five criteria",
+    rows: [
+      { criteria: "Information Depth", propsoch: "80+ data points", other: "20-40 data points" },
+      { criteria: "Transparency", propsoch: "Detailed pros & cons", other: "Only pros highlighted" },
+      { criteria: "Data Accuracy", propsoch: "Verified by architects", other: "Loose verification" },
+      { criteria: "Service Validity", propsoch: "Till you find your home", other: "Based on no. of contacts" },
+      { criteria: "Data Sources", propsoch: "RERA, GMaps, CDP etc.", other: "Added by developer & broker" },
+    ],
   },
   {
-    criteria: "Transparency",
-    propsoch: "Detailed pros & cons",
-    localBrokers: "Only pros highlighted",
-    onlinePortals: "Listing copy written by the seller",
-  },
-  {
-    criteria: "Project Curation",
-    propsoch: "Based on 20+ factors",
-    localBrokers: "Not curated",
-    onlinePortals: "Ranked by paid placement, not fit",
-  },
-  {
-    criteria: "Spam",
-    propsoch: "No spam",
-    localBrokers: "High spamming until closure",
-    onlinePortals: "Your number is shared with every listed agent",
-  },
-  {
-    criteria: "Post sales support",
-    propsoch: "End-to-end support",
-    localBrokers: "None",
-    onlinePortals: "None",
-  },
-  {
-    criteria: "Site Visits",
-    propsoch: "Assisted by on-ground market experts",
-    localBrokers: "No market expertise",
-    onlinePortals: "You arrange them yourself",
-  },
-  {
-    criteria: "Negotiation",
-    propsoch: "High leverage via insights",
-    localBrokers: "No insights to leverage",
-    onlinePortals: "You negotiate alone",
-  },
-  {
-    criteria: "In-Depth Reports",
-    propsoch: "2 complimentary Peace of Mind Reports",
-    localBrokers: "None",
-    onlinePortals: "None",
-  },
-  {
-    criteria: "Advisor",
-    propsoch: "Trained architects",
-    localBrokers: "Local sales people",
-    onlinePortals: "No assigned advisor",
+    id: "local-brokers",
+    tabLabel: "Local brokers",
+    columnLabel: "Local brokers",
+    caption: "Propsoch compared with local brokers across nine criteria",
+    rows: [
+      { criteria: "Sales Practices", propsoch: "Consultative, no pressure", other: "High pressure sales tactics" },
+      { criteria: "Transparency", propsoch: "Detailed pros & cons", other: "Only pros highlighted" },
+      { criteria: "Project Curation", propsoch: "Based on 20+ factors", other: "Not curated" },
+      { criteria: "Spam", propsoch: "No spam", other: "High spamming until closure" },
+      { criteria: "Post sales support", propsoch: "End-to-end support", other: "None" },
+      { criteria: "Site Visits", propsoch: "Assisted by on-ground market experts", other: "No market expertise" },
+      { criteria: "Negotiation", propsoch: "High leverage via insights", other: "No insights to leverage" },
+      { criteria: "In-Depth Reports", propsoch: "2 complimentary Peace of Mind Reports", other: "None" },
+      { criteria: "Advisor", propsoch: "Trained architects", other: "Local sales people" },
+    ],
   },
 ] as const;
 

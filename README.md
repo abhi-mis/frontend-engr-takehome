@@ -363,6 +363,137 @@ The cost of the whole pass: **+2.0 KB** of page weight, **+16** DOM nodes, and
 
 ---
 
+## 2.11. The hero artwork stopped captioning itself
+
+The two floating figure cards are gone. They read "Curated on 20+ factors" and
+"Average saved ~Rs 4.78 L", both real Propsoch numbers, and both already on the
+page in better places: the curation figure in the comparison table and the
+process step, the saving in the calculator where it carries the
+illustrative-estimate note a floating label cannot. They were also the only text
+inside the artwork and were not aria-hidden, so a screen reader was reading two
+stray figures out of a decorative scene. It announces nothing now.
+
+**A label over a diagram is the diagram admitting it does not communicate.** So
+the drawing carries the points instead:
+
+- **Curation.** Three listings, two faded back, one outlined in brand with a
+  tick. That is the shortlist, drawn.
+- **Verification.** A seal on the destination house. The scene used to draw a
+  journey to a generic house, which is the one thing Propsoch is not selling.
+- **The report.** Three checked lines on a card near the end of the route,
+  because the Peace of Mind Report is their signature deliverable and the scene
+  had no sign of one.
+- **Inspection.** Two checkpoints ON the road, so the route reads as inspected
+  rather than merely travelled.
+- **The mark.** The pin carried a generic house glyph; their logo is a house
+  built around a four pointed spark, and the pin already is the house.
+
+The checkpoints are placed at `getPointAtLength(0.34)` and `(0.62)` of the road
+path, not at coordinates that looked about right, and the report card was placed
+after checking the block plan so it sits in empty space. Same rule as the car:
+if it belongs on the path, ask the path.
+
+CLS stays 0 because every addition is inside the existing svg viewBox, which
+reserves its own space. Four dead `.hero-route-insight` rules went with the
+cards.
+
+---
+
+## 2.10. The comparison: one competitor at a time, and a column I had invented
+
+**Propsoch ship two tables, not one.** Their "How are we different?" section has
+a tab per competitor and each tab is its own table with its own criteria. The
+two do not overlap: against portals the argument is about DATA (Information
+Depth, Data Accuracy, Service Validity, Data Sources, five rows), against
+brokers it is about CONDUCT (Sales Practices, Spam, Curation, Support, nine
+rows). Only "Transparency" appears in both, worded identically.
+
+**What this build shipped before was one nine row table with a fourth column I
+wrote myself.** I had taken their nine broker criteria and authored an online
+portals answer for each. Seven of those nine cells were mine, including "Lead
+form, then calls from multiple agents", "Ranked by paid placement, not fit" and
+"Your number is shared with every listed agent". They are plausible and they are
+not Propsoch's, and inventing criticism of named competitors and presenting it
+as a client's own comparison is exactly what this project's rules forbid.
+
+It also buried their real argument. "80+ data points against 20-40", "verified
+by architects against loose verification", "RERA, GMaps, CDP" against "added by
+developer & broker" is sharper than anything I wrote, and none of it was on the
+page. Every cell is now theirs, machine-diffed against their own
+`difference.data.tsx`; the only edit is a trailing space trimmed from "Added by
+developer & broker ".
+
+**One table, all widths.** This section used to carry two DOM trees, a desktop
+table and a mobile card list, toggled with `hidden md:block`. That made it the
+heaviest thing on the page at 461 elements. Three columns fit at 360px, so there
+is one tree now: **461 elements to 215**, and the page total from 1289 to 1028.
+
+Two things that had to be fixed to make three columns fit at 360:
+
+- The card was `overflow-hidden`, so when the table needed 361px in a 313px card
+  it **clipped** the competitor's column. The answers were in the DOM, announced
+  to a screen reader, and impossible to read. It scrolls now, as a safety net.
+- `(Housing/99Acres/Magicbricks)` is a single 29 character token with no spaces,
+  and an unbreakable token sets a column's minimum width. It alone was forcing
+  the overflow. A `<wbr/>` after each slash gives the browser the break points a
+  reader would pick, which is where Propsoch put their own `<br/>`.
+
+**Two accessibility bugs surfaced as a side effect, and they were not new.** A
+shorter page meant Lighthouse's scanner now lays out sections that
+`content-visibility: auto` had been skipping, so two checks that had been
+recorded as passing turned out never to have run:
+
+- The savings calculator's slider thumb had **no accessible name**. The effect
+  that sets it returns early when the slider has not mounted yet, and
+  `isSliderMounted` was missing from its dependency array, so it never ran
+  again. A screen reader met an anonymous slider.
+- The testimonial dots were **8px targets**, against a 24px minimum. The button
+  is 24px now with the 8px dot drawn inside it.
+
+Accessibility is back to 97, the same three white-on-`#FF6D33` CTA deviations as
+before and nothing else.
+
+**The performance trade-off, stated plainly.** DOM is down 261 elements, but the
+desktop table used to be a Server Component with zero JavaScript and is now
+inside the client tab island, so more of the section hydrates. Total Blocking
+Time moved from roughly 240ms to roughly 380ms across runs, while the
+performance score sits at a median of 80 over six runs (77, 79, 80, 80, 81, 89)
+against a median of 88 before. That spread is wider than the change, so treat it
+as "no clear movement" rather than a regression, and see the note in section 3
+about this machine. If it matters, the panels could be server-rendered and
+passed into the client tab wrapper as children, which is the obvious next step
+and not one I took here.
+
+---
+
+## 2.9. Three hero fixes
+
+**The typewriter was typing on three lines.** Not a timing bug. `.type-line` sets
+`display: grid` so the three phrases can share `grid-area: 1 / 1` and overlap;
+`.hero-home-heading .type-line` set `display: inline-block` and is one class
+more specific, so it won. The overlap never happened, the phrases laid out as
+three wrapped inline-blocks, and two invisible ones held open the space. The
+orange bar under them was the section underline sitting below all three. Now
+`inline-grid`, which also restores the point of using grid here: the box is
+sized to the widest phrase from first layout, so swapping phrases never reflows.
+The h1 went from 364px to 222px. **CLS stays 0** across a full cycle.
+
+**The car did not follow the road.** It was an HTML div outside the svg, moved
+between two hand-picked points with a fixed rotation, which cannot trace an
+S-curve at all. It is now a group inside the svg driven by CSS Motion Path along
+the same path string the road is drawn from, so it shares the road's coordinate
+system and `offset-rotate: auto` banks it through the bends. Verified against
+`getPointAtLength` at five points along the route: a constant 8-unit offset,
+which is the car's bbox centre sitting above its wheels. Constant means no
+drift. It also parks on the road rather than vanishing under reduced motion.
+
+**The artwork was not hidden on mobile, though the comment said it was.** The
+`hidden lg:flex` had gone and a 300px diagram was rendering on a 360px screen,
+against the original hero brief. Restored, with its dead mobile heights removed.
+Mobile now reports `display: none` and **zero running animations**.
+
+---
+
 ## 3. Before and target
 
 ### READ THIS BEFORE RUNNING LIGHTHOUSE

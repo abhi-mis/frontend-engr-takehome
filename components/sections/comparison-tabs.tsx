@@ -1,159 +1,197 @@
 "use client";
 
+import { Fragment } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckIcon, CrossIcon } from "@/components/icons";
-import { COMPARISON, COMPARISON_ROWS, type ComparisonRow } from "@/lib/content";
+import { COMPARISON, COMPARISON_SETS } from "@/lib/content";
 
 /**
- * Mobile comparison. The only client island in this section.
+ * "How are we different?" One comparison at a time.
  *
- * WHY THIS IS TABS AND NOT THREE COLUMNS
+ * WHY TWO COLUMNS OF ANSWERS AND NEVER THREE
  *
- * Reading the original's markup, its tabs choose WHICH COMPETITOR you compare
- * against, and the Propsoch column is always on screen. That is the right call
- * and this keeps it: three columns of prose on a 360px screen is unreadable, so
- * each panel shows exactly two answers, Propsoch's and one competitor's.
+ * Propsoch's own section works this way, and reading their data explains why:
+ * the two comparisons do not share criteria. Against portals the argument is
+ * about DATA, five rows on depth, accuracy, validity and sources. Against
+ * brokers it is about CONDUCT, nine rows on pressure, spam, curation and
+ * support. Only "Transparency" appears in both.
  *
- * WHY IT COSTS CLIENT JAVASCRIPT AT ALL
+ * A single table with a column each would therefore need a union of thirteen
+ * criteria with holes in two thirds of it, and the holes would have to be
+ * filled with something. That is precisely what went wrong here before: the
+ * gaps got filled with copy I wrote, so the page carried invented claims about
+ * named competitors. Two tables, each with its own criteria, is not only their
+ * design, it is the only version of this that does not require making things up.
  *
- * Real ARIA tabs need a roving tabindex and arrow key handling, which cannot be
- * done in CSS. Radix supplies `role="tablist"`, `aria-selected`, matching
- * `aria-controls`/`id` pairs, and Left, Right, Home and End keys. This is the
- * one place on the page where buying a primitive is cheaper than being correct
- * by hand.
+ * ONE TABLE, ALL WIDTHS
  *
- * THE `forceMount` IS THE BUG FIX, NOT AN OPTIMISATION
+ * This section used to ship two DOM trees, a desktop table and a mobile card
+ * list, toggled with `hidden md:block`. That made it the single heaviest thing
+ * on the page at 461 elements. A three column table is narrow enough to hold up
+ * at 360px once the type scales down, so there is one tree now and the mobile
+ * markup no longer exists to pay for.
  *
- * The brief flagged broken `aria-controls` on the original. Rendering the live
- * site showed the exact mechanism: Radix does not mount inactive tab panels by
- * default, so every trigger advertises `aria-controls="...-content-x"` while no
- * element with that id exists in the document. That is a real WCAG 1.3.1
- * failure, and it is a trap anyone using Radix Tabs can fall into without
- * noticing.
+ * `scope="col"` and `scope="row"` are what make it a table rather than a grid
+ * of phrases: a screen reader announces "Transparency, Propsoch, Detailed pros
+ * and cons" when moving across a row.
  *
- * `forceMount` keeps both panels in the DOM. Radix then marks the inactive one
- * `hidden`, which removes it from the accessibility tree, so a screen reader
- * still encounters exactly one panel while `aria-controls` always resolves.
+ * THE `forceMount` IS A BUG FIX, NOT AN OPTIMISATION
+ *
+ * Radix does not mount an inactive tab panel by default, so every trigger
+ * advertises `aria-controls` pointing at an id that is not in the document.
+ * That is a real WCAG 1.3.1 failure and it is the default behaviour. Keeping
+ * both panels mounted fixes it; hiding the inactive one with `display: none`
+ * keeps it out of the accessibility tree, so a reader still meets exactly one.
  */
-
-/** The two competitors, and which field of a row each one reads. */
-const COMPETITORS = [
-  {
-    id: "local_brokers",
-    tabLabel: "vs Local brokers",
-    columnLabel: COMPARISON.localBrokersHeader,
-    field: "localBrokers",
-  },
-  {
-    id: "online_portals",
-    tabLabel: "vs Online portals",
-    columnLabel: COMPARISON.onlinePortalsHeader,
-    field: "onlinePortals",
-  },
-] as const satisfies readonly {
-  id: string;
-  tabLabel: string;
-  columnLabel: string;
-  // Constrained to the row fields that hold a competitor's answer, so a typo
-  // here is a compile error rather than an "undefined" rendered on the page.
-  field: keyof Pick<ComparisonRow, "localBrokers" | "onlinePortals">;
-}[];
-
 export function ComparisonTabs() {
   return (
-    <Tabs defaultValue={COMPETITORS[0].id} className="gap-5">
+    <Tabs defaultValue={COMPARISON_SETS[0].id} className="mt-8 gap-5">
       <TabsList
-        // shadcn's TabsList is h-8 and its inactive trigger colour is
-        // `text-foreground/60`. Both are overridden below: h-8 is under the
-        // 44px touch target the brief requires, and foreground at 60% alpha
-        // over this panel computes to 4.10:1, which FAILS AA. That is the same
-        // low-contrast tab text the brief asks me to fix on the original, and
-        // it ships as the library default.
-        className="h-auto w-full gap-1 rounded-card bg-surface-raised p-1.5 shadow-xs"
+        aria-label={COMPARISON.tabsLabel}
+        // shadcn's TabsList is h-8 with `text-foreground/60` for inactive
+        // triggers. Both are overridden: h-8 is under the 44px target this
+        // project requires, and foreground at 60% alpha over this panel is
+        // 4.10:1, which fails AA. That is the same low-contrast tab text the
+        // brief asks me to fix on the original, shipped as a library default.
+        className="h-auto w-full max-w-md gap-1 rounded-card bg-surface-raised p-1.5 shadow-xs"
       >
-        {COMPETITORS.map((competitor) => (
+        {COMPARISON_SETS.map((set) => (
           <TabsTrigger
-            key={competitor.id}
-            value={competitor.id}
-            // The active pill was bg-surface (#FBFBFA) on a bg-surface-alt
-            // list. With the list moved to the raised white step, that pair
-            // became invisible, so the active state now carries the brand tint
-            // instead. brandStrong on brandTint is asserted in the contrast
-            // gate, and a tinted active tab reads more deliberate than a white
-            // one on grey.
+            key={set.id}
+            value={set.id}
             className="min-h-11 flex-1 rounded-inner text-sm font-semibold text-ink-muted data-active:bg-brand-tint data-active:text-brand-strong data-active:shadow-xs"
           >
-            {competitor.tabLabel}
+            {set.tabLabel}
           </TabsTrigger>
         ))}
       </TabsList>
 
-      {COMPETITORS.map((competitor) => (
+      {COMPARISON_SETS.map((set) => (
         <TabsContent
-          key={competitor.id}
-          value={competitor.id}
+          key={set.id}
+          value={set.id}
           forceMount
-          // `forceMount` on its own is NOT enough, and this caught me out.
-          // Radix only applies `hidden` through its Presence exit path, so with
-          // forceMount both panels render fully visible and the page shows both
-          // competitors stacked. Hiding the inactive one in CSS keeps it in the
-          // DOM (so `aria-controls` still resolves, which was the whole point)
-          // while `display: none` removes it from the accessibility tree, so a
-          // screen reader still meets exactly one panel.
+          // forceMount alone is not enough. Radix only applies `hidden` through
+          // its Presence exit path, so without this both panels render at once
+          // and the page shows both comparisons stacked.
           className="data-[state=inactive]:hidden"
         >
-          {/* An ordered structure would imply ranking, so this is a plain list
-              of criteria. Each item is a mini two row comparison. */}
-          <ul className="flex flex-col gap-3">
-            {COMPARISON_ROWS.map((row) => (
-              <li
-                key={row.criteria}
-                className="overflow-hidden rounded-card bg-surface-raised shadow-md"
-              >
-                {/* The border-b here STAYS. It is an internal divider between
-                    a card's header band and its body, which is a different
-                    thing from the outline that used to draw the card itself.
-                    Removing outlines does not mean removing rules. */}
-                <p className="border-b border-line bg-surface-sunken px-4 py-2.5 text-xs font-bold tracking-wide text-ink uppercase">
-                  {row.criteria}
-                </p>
+          {/* overflow-x-auto, not overflow-hidden, and this was a real bug.
+              At 360px the three columns need 361px and the viewport gives 345,
+              so `overflow-hidden` CLIPPED the competitor column: the answers
+              were on the page, inside the accessibility tree, and impossible to
+              read or reach. Scrolling is the honest failure mode for a table
+              that does not fit. overflow-y is pinned to visible so setting the
+              x axis does not quietly turn on a vertical scrollbar too.
 
-                <div className="flex flex-col">
-                  {/* Propsoch, always shown, always first, tinted. */}
-                  <div className="flex items-start gap-3 bg-brand-tint px-4 py-3">
-                    <CheckIcon
-                      aria-hidden
-                      className="mt-0.5 size-4 shrink-0 text-brand-strong"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-brand-strong">
-                        {COMPARISON.propsochHeader}
-                      </p>
-                      <p className="mt-0.5 text-sm font-medium text-ink">
-                        {row.propsoch}
-                      </p>
-                    </div>
-                  </div>
+              The padding below also tightens on small screens, which gets the
+              table under the viewport width in the common case, so the scroll
+              is a safety net rather than the everyday experience. */}
+          <div className="overflow-x-auto [overflow-y:visible] rounded-card bg-surface-raised shadow-md">
+            <table className="w-full border-collapse text-left">
+              <caption className="sr-only">{set.caption}</caption>
 
-                  {/* The selected competitor. */}
-                  <div className="flex items-start gap-3 px-4 py-3">
-                    <CrossIcon
-                      aria-hidden
-                      className="mt-0.5 size-4 shrink-0 text-ink-muted"
-                    />
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-ink-muted">
-                        {competitor.columnLabel}
-                      </p>
-                      <p className="mt-0.5 text-sm text-ink-muted">
-                        {row[competitor.field]}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </li>
-            ))}
-          </ul>
+              <thead>
+                <tr className="border-b border-line bg-surface-sunken">
+                  <th
+                    scope="col"
+                    className="px-2 py-3 text-[0.7rem] font-bold tracking-wide text-ink-muted uppercase sm:px-5 sm:py-4 sm:text-sm sm:tracking-normal sm:normal-case"
+                  >
+                    {COMPARISON.criteriaHeader}
+                  </th>
+                  {/* Propsoch's column is tinted the whole way down, so the eye
+                      can follow one answer set without reading the header
+                      again on every row. */}
+                  <th
+                    scope="col"
+                    className="bg-brand-tint px-2 py-3 text-xs font-bold text-brand-strong sm:px-5 sm:py-4 sm:text-sm"
+                  >
+                    {COMPARISON.propsochHeader}
+                  </th>
+                  <th
+                    scope="col"
+                    className="px-2 py-3 text-xs font-bold text-ink sm:px-5 sm:py-4 sm:text-sm"
+                  >
+                    {set.columnLabel}
+                    {set.columnNote && (
+                      // Their own parenthetical, in normal weight on its own
+                      // line exactly as they set it.
+                      //
+                      // "(Housing/99Acres/Magicbricks)" is a single 29
+                      // character token with no spaces, and an unbreakable
+                      // token sets a column's MINIMUM width. It alone forced
+                      // the table to 364px inside a 313px card and pushed the
+                      // competitor's answers off the edge, where they were
+                      // present, announced, and impossible to read.
+                      //
+                      // `overflow-wrap: anywhere` fixed the width and broke it
+                      // mid-word, as "99Acre / s/Magicbricks". A <wbr/> after
+                      // each slash gives the browser the break points a reader
+                      // would choose instead, which is the same place Propsoch
+                      // put their own hard <br/> on narrow screens, without
+                      // hard-coding one width's worth of layout into the data.
+                      <span className="mt-0.5 block text-[0.7rem] leading-tight font-normal text-ink-muted sm:text-xs">
+                        {set.columnNote.split("/").map((part, i, all) => (
+                          <Fragment key={part}>
+                            {part}
+                            {i < all.length - 1 && (
+                              <>
+                                {"/"}
+                                <wbr />
+                              </>
+                            )}
+                          </Fragment>
+                        ))}
+                      </span>
+                    )}
+                  </th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {set.rows.map((row, index) => {
+                  const isLast = index === set.rows.length - 1;
+                  const rule = isLast ? "" : " border-b border-line";
+                  return (
+                    <tr key={row.criteria}>
+                      <th
+                        scope="row"
+                        className={`px-2 py-3 align-top text-xs font-semibold text-ink sm:px-5 sm:py-4 sm:text-sm${rule}`}
+                      >
+                        {row.criteria}
+                      </th>
+
+                      <td
+                        className={`bg-brand-tint px-2 py-3 align-top sm:px-5 sm:py-4${rule}`}
+                      >
+                        <span className="flex items-start gap-1.5 sm:gap-2">
+                          <CheckIcon
+                            aria-hidden
+                            className="mt-0.5 hidden size-3.5 shrink-0 text-brand-strong min-[400px]:block sm:size-4"
+                          />
+                          <span className="text-xs font-medium text-ink sm:text-sm">
+                            {row.propsoch}
+                          </span>
+                        </span>
+                      </td>
+
+                      <td className={`px-2 py-3 align-top sm:px-5 sm:py-4${rule}`}>
+                        <span className="flex items-start gap-1.5 sm:gap-2">
+                          <CrossIcon
+                            aria-hidden
+                            className="mt-0.5 hidden size-3.5 shrink-0 text-ink-muted min-[400px]:block sm:size-4"
+                          />
+                          <span className="text-xs text-ink-muted sm:text-sm">
+                            {row.other}
+                          </span>
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </TabsContent>
       ))}
     </Tabs>

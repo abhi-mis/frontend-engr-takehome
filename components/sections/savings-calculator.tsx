@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
 import { Slider } from "@/components/ui/slider";
 import { InfoIcon } from "@/components/icons";
 import { SectionHeading } from "@/components/section-heading";
@@ -34,6 +34,11 @@ const DEFAULT_BUDGET = 1_00_00_000;
 export function SavingsCalculator() {
   const [position, setPosition] = useState(() =>
     budgetToPosition(DEFAULT_BUDGET)
+  );
+  const isSliderMounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false
   );
 
   const budget = positionToBudget(position);
@@ -73,7 +78,22 @@ export function SavingsCalculator() {
 
     thumb.setAttribute("aria-labelledby", labelId);
     thumb.setAttribute("aria-valuetext", describeIndianCurrency(budget));
-  }, [budget, labelId]);
+    // isSliderMounted IS a dependency, and leaving it out was a real bug.
+    //
+    // The store starts false so the server and the first client commit agree,
+    // which means on that first commit there is no Slider and therefore no
+    // thumb, and this effect returns early. The store then flips to true and
+    // the Slider renders, but neither budget nor labelId changed, so React had
+    // no reason to run this again. The thumb stayed anonymous until the user
+    // dragged it, which a screen reader user cannot do without the name that
+    // is missing.
+    //
+    // An accessibility audit caught it. It had been passing for weeks only
+    // because this section carries content-visibility: auto, so the scanner
+    // never laid it out and skipped the check entirely. Shortening the page
+    // elsewhere brought the section into the scanned region and the failure
+    // appeared without anything here changing.
+  }, [budget, labelId, isSliderMounted]);
 
   return (
     <section
@@ -111,7 +131,8 @@ export function SavingsCalculator() {
             </div>
 
             <div className="mt-5">
-              <Slider
+              {isSliderMounted ? (
+                <Slider
                 id={sliderId}
                 aria-labelledby={labelId}
                 value={[position]}
@@ -153,7 +174,13 @@ export function SavingsCalculator() {
                   "[&_[data-slot=slider-thumb]]:after:-inset-[10px]",
                 ].join(" ")}
                 ref={rootRef}
-              />
+                />
+              ) : (
+                <div
+                  aria-hidden="true"
+                  className="h-6 w-full rounded-full bg-line"
+                />
+              )}
 
               <div className="mt-3 flex justify-between text-xs font-medium text-ink-muted">
                 <span>{formatIndianCurrency(CALCULATOR.minBudget)}</span>
