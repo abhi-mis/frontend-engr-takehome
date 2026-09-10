@@ -153,6 +153,5 @@ The main improvements are centred around:
 - More useful advisory content
 - Easier content discovery
 - More natural mobile layouts
-- More consistent interactions
 
 The detailed performance analysis and Web Vitals work are documented separately in [ANALYSIS.md](ANALYSIS.md).
