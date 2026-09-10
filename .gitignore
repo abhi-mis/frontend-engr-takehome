@@ -45,6 +45,3 @@ yarn-error.log*
 !.vscode/extensions.json
 .playwright-mcp/
 
-# NOTE: Implementation.md is deliberately NOT ignored.
-# It is the running teaching log for this rebuild and stays visible in the
-# repo folder. Commits are handled manually, so staging it is a per-commit choice.
