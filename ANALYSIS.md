@@ -1,6 +1,6 @@
 # Performance Analysis and Optimisation
 
-This document covers only the performance issues found during the Lighthouse review, the Web Vitals impact, and the changes made to improve them.
+This document covers the performance issues found during the Lighthouse review, the Web Vitals impact, and the changes made to improve them.
 
 ## 1. Web Vitals and Performance Issues
 
@@ -91,20 +91,7 @@ The main performance problems were JavaScript execution, rendering work, duplica
 
 **Result:** DOM size was reduced to approximately **837 nodes**.
 
-### 1.7 Network requests and third-party resources
-
-**Issue:** The original page made **28 script requests** and included third-party product resources that added network, parsing and execution cost.
-
-**Fix:**
-- Removed unnecessary third-party resources from the initial load.
-- Replaced video iframes with lightweight poster facades.
-- Self-hosted the required font.
-- Optimised image and logo assets.
-- Deferred non-critical media.
-
-**Result:** Script requests reduced from **28 to 6**, with **0 third-party requests** in the measured initial load.
-
-### 1.8 Cumulative Layout Shift (CLS)
+### 1.7 Cumulative Layout Shift (CLS)
 
 **Issue:** Dynamic content and media can cause layout movement if dimensions are not known before rendering.
 
@@ -116,32 +103,39 @@ The main performance problems were JavaScript execution, rendering work, duplica
 
 **Result:** CLS remained **0**.
 
-### 1.9 Animation and mobile rendering cost
 
-**Issue:** Large decorative hero animation is expensive on smaller devices and is not required to communicate the product.
+## 2. UX/UI and Accessibility Issues
 
-**Fix:**
-- Removed the large hero artwork from mobile rendering.
-- Used a CSS-first typewriter effect.
-- Kept the animated content inside a stable layout area.
-- Added reduced-motion handling.
+### 2.1 Performance
 
-**Result:** The animation does not introduce measurable layout shift, and focused production testing recorded **CLS 0**.
+The performance-specific measurements and Web Vitals are covered in Section 1. The implementation changes related to those issues were:
 
-### 1.10 Asset and font cost
+| Issue | Fixed |
+| --- | --- |
+| The hero content waited on client-side JS before it showed up. | I moved it to Server Components so it's in the initial HTML. |
+| Too much stuff was hydrating on the client for no reason. | I kept only the interactive bits as client components and cut the duplicate mobile/desktop markup. |
+| Videos and images were loading upfront, even off-screen ones. | I added poster facades for the testimonial videos, lazy-loaded below-the-fold media, hid the hero art on mobile, and switched to responsive WebP. |
+| Extra font weights, a heavy favicon and missing image dimensions were adding weight and layout shift risk. | I trimmed the font to one file, swapped in a lightweight SVG favicon, and added proper dimensions to media. |
 
-**Issue:** Fonts, favicons and media contributed unnecessary bytes and requests.
+### 2.2 UX and Hierarchy
 
-**Fix:**
-- Replaced the larger favicon with a small SVG.
-- Removed an unnecessary `latin-ext` font request.
-- Reduced font downloads from approximately **47.8 KB to 26.6 KB**.
-- Converted relevant image assets to WebP.
-- Added lazy loading for non-critical media.
+| Issue | Fixed |
+| --- | --- |
+| The hero pushed the CTA before explaining what the service actually does. | I reordered it to headline -> value proposition -> CTA -> stats. |
+| The 25-day process was stuck in a small inner-scroll box, easy to miss steps. | I turned it into a normal timeline that flows with the page, with a CSS scroll-driven progress line. |
+| The testimonial videos were mismatched with the wrong names and quotes. | I corrected the mappings and swapped the heavy embeds for click-to-load previews. |
+| Press mentions weren't easy to find. | I added a proper "Featured in" section with named logos and links. |
+| The footer was basically empty and left dead space on mobile. | I rebuilt it with locations, partner builders, navigation, social links and legal info. |
 
-**Result:** Lower transfer size and less work during the critical loading phase.
+### 2.3 Accessibility and Visual Quality
 
-## 2. How I Fixed the Performance Issues
+| Issue | Fixed |
+| --- | --- |
+| Some interactive states didn't have enough contrast, and touch targets were too small. | I separated the contrast tokens by purpose, used a stronger accessible orange for focus states, and built controls around a 44px minimum. |
+| Tabs and accordions weren't wired up properly for screen readers, and SVGs had no clear accessibility treatment. | I added stable `aria-controls` relationships and marked decorative vs. meaningful SVGs explicitly. |
+| Motion had no reduced-motion handling, and typography/spacing felt inconsistent across sections. | I added reduced-motion support everywhere and unified the type scale, weights and spacing. |
+
+## 3. How I Fixed the Performance Issues
 
 The optimisation strategy was intentionally focused on reducing work instead of simply hiding Lighthouse problems.
 
@@ -192,5 +186,3 @@ The optimisation strategy was intentionally focused on reducing work instead of 
 | Third-party requests | **7 products** | **0** |
 
 The final mobile Lighthouse score is **99 Performance, 97 Accessibility, 100 Best Practices and 100 SEO**.
-
-Lighthouse should be measured against the production build using `npm run build && npm start`, not the development server.

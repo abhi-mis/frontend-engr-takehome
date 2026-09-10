@@ -30,15 +30,23 @@ I approached this assignment in four parts:
 
 ### Analysis
 
-I reviewed the original Propsoch page across performance, accessibility, best practices and SEO. I document the key UX, UI, responsive and loading findings in this README, with the full measurements and methodology in [ANALYSIS.md](ANALYSIS.md).
+I reviewed the original Propsoch page across performance, accessibility, best practices and SEO.
+
+The performance measurements, Web Vitals and optimisation details are documented in [ANALYSIS.md](ANALYSIS.md).
+
+The UX, UI, responsive and accessibility improvements are documented in [IMPROVEMENTS.md](IMPROVEMENTS.md).
 
 ### Build
 
 I rebuilt the landing page with a redesigned hero, responsive desktop and mobile layouts, optimized WebP media, accessible interactions and two additional sections based on the original experience. I built the implementation using Next.js, TypeScript and Tailwind CSS.
 
-### Short README
+### Documentation
 
-This document explains what I changed, why I made each change, how the page is structured, and how I verified the final build.
+This repository separates the work into three documents:
+
+- [README.md](README.md): Basic project and assignment details.
+- [ANALYSIS.md](ANALYSIS.md): Web Vitals, Lighthouse results, performance issues and how they were fixed.
+- [IMPROVEMENTS.md](IMPROVEMENTS.md): UX, UI, accessibility and design improvements, including what changed and why.
 
 ### Submission Readiness
 
@@ -47,187 +55,65 @@ This document explains what I changed, why I made each change, how the page is s
 - I cover responsive behaviour across mobile, tablet and desktop widths.
 - I include performance, accessibility and code quality checks in the project scripts.
 
-## 1. Performance
+## Performance Summary
 
-I benchmarked the original page against the rebuild across Lighthouse performance, accessibility, best practices, SEO, and key metrics. Full measurements and tradeoffs are documented in [ANALYSIS.md](ANALYSIS.md).
+The final mobile Lighthouse result is:
 
+| Metric | Original | Rebuild |
+| --- | ---: | ---: |
+| Performance | **42** | **99** |
+| Accessibility | 84 | **97** |
+| Best Practices | 100 | **100** |
+| SEO | 92 | **100** |
 
-## 2. Issues Found and Fixed
-
-### Performance
-
-| Issue | Fixed |
-| --- | --- |
-| The hero content waited on client-side JS before it showed up. | I moved it to Server Components so it's in the initial HTML. |
-| Too much stuff was hydrating on the client for no reason. | I kept only the interactive bits as client components and cut the duplicate mobile/desktop markup. |
-| Videos and images were loading upfront, even off-screen ones. | I added poster facades for the testimonial videos, lazy-loaded below-the-fold media, hid the hero art on mobile, and switched to responsive WebP. |
-| Extra font weights, a heavy favicon and missing image dimensions were adding weight and layout shift risk. | I trimmed the font to one file, swapped in a lightweight SVG favicon, and added proper dimensions to media. |
-
-### UX and Hierarchy
-
-| Issue | Fixed |
-| --- | --- |
-| The hero pushed the CTA before explaining what the service actually does. | I reordered it to headline -> value proposition -> CTA -> stats. |
-| The 25-day process was stuck in a small inner-scroll box, easy to miss steps. | I turned it into a normal timeline that flows with the page, with a CSS scroll-driven progress line. |
-| The testimonial videos were mismatched with the wrong names and quotes. | I corrected the mappings and swapped the heavy embeds for click-to-load previews. |
-| Press mentions weren't easy to find. | I added a proper "Featured in" section with named logos and links. |
-| The footer was basically empty and left dead space on mobile. | I rebuilt it with locations, partner builders, navigation, social links and legal info. |
-
-### Accessibility and Visual Quality
-
-| Issue | Fixed |
-| --- | --- |
-| Some interactive states didn't have enough contrast, and touch targets were too small. | I separated the contrast tokens by purpose, used a stronger accessible orange for focus states, and built controls around a 44px minimum. |
-| Tabs and accordions weren't wired up properly for screen readers, and SVGs had no clear accessibility treatment. | I added stable `aria-controls` relationships and marked decorative vs. meaningful SVGs explicitly. |
-| Motion had no reduced-motion handling, and typography/spacing felt inconsistent across sections. | I added reduced-motion support everywhere and unified the type scale, weights and spacing. |
-
-## 3. Sections Added
-
-I added two new sections to the original experience.
-
-### How We Read a Plan
-
-A practical guide to the checks that matter in a floor plan, covering layout, movement, light, services and possible issues. It gives visitors useful advisory context before they make a decision.
-
-### Advisors and Team
-
-An introduction to the people behind the service, their roles, experience and the guidance they provide. This adds visible human expertise and makes the advisory model easier to understand.
-
-## 4. What I Redesigned
-
-I improved hierarchy, loading, interactions and responsiveness across the page while keeping the original content.
-
-### Hero
-
-- Reordered: headline -> value proposition -> CTA -> stats.
-- Kept the original copy, rebuilt spacing and layout.
-- CSS typewriter headline; main text loads instantly.
-- Road-and-car SVG animation to the Propsoch logo and house.
-
-### Navigation
-
-- Kept Propsoch's nav structure, made it keyboard-friendly on mobile and desktop.
-
-### Testimonials
-
-- Poster-first videos, load only on click.
-- Fixed wrong name/video/quote mappings.
-
-### Featured In
-
-- Real logo links instead of an auto-scrolling carousel.
-
-### 25-Day Process
-
-- Normal scrolling timeline instead of an inner-scroll box.
-- CSS scroll-driven progress line, with a static fallback.
-
-### Accessibility
-
-- One `h1`, proper heading order, semantic HTML.
-- Full keyboard support for tabs, accordions, sliders, dialogs.
-- Visible focus states, 44px touch targets. 
-- Correct `aria-controls`, accessible names, reduced-motion support.
-- No dead `href="#"` links.
-
-### Visual System
-
-- Tailwind CSS 4, CSS-first tokens in `app/globals.css`.
-- Consistent orange scale for fills, text, and focus states.
-- Shared typography (Plus Jakarta Sans) and heading sizes.
-- Contrast checker script to catch bad colour pairs.
+Full Web Vitals and performance measurements are available in [ANALYSIS.md](ANALYSIS.md).
 
 ## Folder Structure
 
 ```text
 .
 ├── app/
-│   ├── globals.css                 # Tokens, component styling and keyframes
-│   ├── layout.tsx                  # Font, metadata, JSON-LD, shell and skip link
-│   ├── page.tsx                    # Main page composition and section order
-│   ├── icon.svg                    # Lightweight brand favicon
-│   ├── opengraph-image.tsx         # Build-time social image
-│   ├── robots.ts                   # Robots route
-│   └── sitemap.ts                  # Sitemap route
+│   ├── globals.css
+│   ├── layout.tsx
+│   ├── page.tsx
+│   ├── icon.svg
+│   ├── opengraph-image.tsx
+│   ├── robots.ts
+│   └── sitemap.ts
 ├── components/
 │   ├── brand/
-│   │   ├── bromatker.tsx           # Brand wordmark treatment
-│   │   ├── hero-route-art.tsx       # SVG route, car and checkpoints
-│   │   ├── logo.tsx                 # Inline Propsoch logo
-│   │   ├── route-progress.tsx       # Client route progress synchronisation
-│   │   └── splash.tsx               # CSS-only first-paint splash
 │   ├── layout/
-│   │   ├── desktop-nav.tsx          # Desktop navigation
-│   │   ├── mobile-nav.tsx           # Mobile navigation
-│   │   ├── site-footer.tsx          # Footer and legal information
-│   │   └── site-header.tsx          # Header shell
 │   ├── sections/
-│   │   ├── hero.tsx                 # Above-the-fold composition
-│   │   ├── comparison.tsx           # Competitor comparison shell
-│   │   ├── comparison-tabs.tsx      # Client comparison controls
-│   │   ├── testimonials.tsx         # Testimonial section shell
-│   │   ├── testimonial-grid.tsx     # Video facades and dialog island
-│   │   ├── reality-check.tsx        # Reality-check content
-│   │   ├── plan-comparison.tsx      # Accessible image comparison slider
-│   │   ├── floor-plan.tsx           # Plan-reading guide
-│   │   ├── timeline.tsx             # CSS scroll-driven process timeline
-│   │   ├── advisors.tsx             # Advisor and team section
-│   │   ├── guided.tsx               # Guided-service CTA
-│   │   ├── featured-in.tsx          # Press logos
-│   │   ├── faq.tsx                  # FAQ shell
-│   │   ├── faq-tabs.tsx             # FAQ client controls
-│   │   └── savings-calculator.tsx   # Savings interaction
-│   ├── primary-cta.tsx              # Shared primary CTA
-│   ├── section-heading.tsx          # Shared section heading treatment
-│   ├── tab-strip.ts                 # Shared tab styling
-│   ├── icons.tsx                    # Tree-shaken react-icons exports
-│   └── ui/                          # shadcn/Radix primitives
+│   ├── primary-cta.tsx
+│   ├── section-heading.tsx
+│   ├── tab-strip.ts
+│   ├── icons.tsx
+│   └── ui/
 ├── lib/
-│   ├── content.ts                   # Typed page copy and content data
-│   ├── currency.ts                  # Indian currency and calculator maths
-│   ├── faq.ts                       # Structured FAQ content
-│   ├── nav.ts                       # Navigation data
-│   ├── pincodes.ts                  # Service-area data retained for reuse
-│   ├── *generated.ts                # Generated logo, poster, press and plan manifests
-│   ├── utils.ts                     # Shared utility helpers
-│   └── __tests__/                   # Vitest unit tests
+│   ├── content.ts
+│   ├── currency.ts
+│   ├── faq.ts
+│   ├── nav.ts
+│   ├── pincodes.ts
+│   ├── *generated.ts
+│   ├── utils.ts
+│   └── __tests__/
 ├── public/
-│   ├── logos/                       # Partner and employer logos
-│   ├── plan/                        # Responsive plan-comparison media
-│   ├── posters/                     # Testimonial poster images
-│   └── press/                       # Featured-in logos
+│   ├── logos/
+│   ├── plan/
+│   ├── posters/
+│   └── press/
 ├── scripts/
-│   ├── check-contrast.mjs           # Contrast and accepted-deviation gate
-│   ├── fetch-*.mjs                  # Media generation and manifest scripts
-│   └── verify-pincodes.mjs          # India Post data verification
-├── ANALYSIS.md                      # Performance analysis and optimisation notes
-├── components.json                  # shadcn configuration
-├── eslint.config.mjs                # ESLint configuration
-├── next.config.ts                   # Next.js configuration
-├── package.json                     # Scripts and dependencies
-├── postcss.config.mjs               # Tailwind/PostCSS configuration
-└── tsconfig.json                    # TypeScript configuration
+│   ├── check-contrast.mjs
+│   ├── fetch-*.mjs
+│   └── verify-pincodes.mjs
+├── README.md
+├── ANALYSIS.md
+├── IMPROVEMENTS.md
+├── components.json
+├── eslint.config.mjs
+├── next.config.ts
+├── package.json
+├── postcss.config.mjs
+└── tsconfig.json
 ```
-
-## Verification
-
-The main verification command is:
-
-```bash
-npm run verify
-```
-
-I checked the rebuild for:
-
-- TypeScript compilation
-- Contrast regressions
-- Unit tests
-- Production build output
-- Responsive layouts at 360, 390, 768, 1024 and 1280px
-- Keyboard, focus, navigation, tab, accordion and slider behaviour
-- Zero horizontal overflow
-- One `h1` and one page header
-- Zero console errors and warnings during production review
-- CLS remaining at **0** through the hero animation cycle
-
-I document the full performance evidence and measurement notes in [ANALYSIS.md](ANALYSIS.md).
