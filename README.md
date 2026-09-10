@@ -49,20 +49,8 @@ This document explains what I changed, why I made each change, how the page is s
 
 ## 1. Performance
 
-I benchmarked the original page against the rebuild across Lighthouse performance, accessibility, best practices and SEO, along with key metrics such as LCP, TBT, main-thread work and JavaScript bootup time. I document the full comparison, measurements and tradeoffs in [ANALYSIS.md](ANALYSIS.md).
+I benchmarked the original page against the rebuild across Lighthouse performance, accessibility, best practices, SEO, and key metrics. Full measurements and tradeoffs are documented in [ANALYSIS.md](ANALYSIS.md).
 
-To improve performance, I:
-
-- Rendered the important page content with Server Components.
-- Kept interactive behaviour inside small client components.
-- Made the hero available in the initial HTML.
-- Replaced JavaScript animation work with CSS where possible.
-- Hid the decorative route artwork on mobile.
-- Deferred below-the-fold images and video loading.
-- Used poster facades instead of loading video iframes immediately.
-- Added explicit media dimensions to protect CLS.
-- Used responsive WebP assets and a self-hosted font.
-- Removed unnecessary initial third-party requests.
 
 ## 2. Issues Found and Fixed
 
