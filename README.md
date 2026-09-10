@@ -4,7 +4,7 @@ I rebuilt the Propsoch real-estate advisory landing page using Next.js, TypeScri
 
 I kept the Propsoch brand, content and personality in place, and focused on making the experience faster, clearer, more accessible and more usable on every screen size.
 
-**Live assignment rebuild:** [frontend-engr-takehome.vercel.app](frontend-engr-takehome.vercel.app/)
+**Live assignment rebuild:** [https://frontend-engr-takehome.vercel.app/](https://frontend-engr-takehome.vercel.app/)
 
 ## Basic Setup
 
