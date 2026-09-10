@@ -11,13 +11,13 @@ import { CALCULATOR } from "../content";
 const LAKH = 1_00_000;
 const CRORE = 1_00_00_000;
 
+// Currency formatting and the savings maths.
 describe("formatIndianCurrency", () => {
   it("renders whole lakh values without decimals", () => {
     expect(formatIndianCurrency(50 * LAKH)).toBe("₹50 L");
   });
 
   it("renders fractional lakh values to two decimals", () => {
-    // The real published average saving.
     expect(formatIndianCurrency(4_78_000)).toBe("₹4.78 L");
   });
 
@@ -88,9 +88,6 @@ describe("positionToBudget", () => {
   });
 
   it("is logarithmic, so the midpoint is far below the linear midpoint", () => {
-    // A linear scale would put the midpoint at about 12.75 Cr. Log puts it near
-    // the geometric mean, sqrt(50L * 25Cr), which is about 3.53 Cr. This is the
-    // whole reason for the log mapping, so it is worth asserting.
     const midpoint = positionToBudget(50);
     const linearMidpoint = (CALCULATOR.minBudget + CALCULATOR.maxBudget) / 2;
 
@@ -112,10 +109,6 @@ describe("budgetToPosition", () => {
   });
 
   it("round-trips stably with positionToBudget", () => {
-    // Snapping means position -> budget -> position is not an identity, but the
-    // BUDGET must be stable: re-deriving the position from a snapped budget and
-    // mapping it back must land on the same budget. If that were not true the
-    // slider thumb would drift every time the component re-rendered.
     for (let p = 0; p <= 100; p += 1) {
       const budget = positionToBudget(p);
       const backToBudget = positionToBudget(budgetToPosition(budget));
@@ -130,10 +123,6 @@ describe("estimateSaving", () => {
   });
 
   it("is consistent with the published average saving", () => {
-    // Propsoch publishes an average saving of about Rs 4.78 L. At a 4.8% rate
-    // that implies an average ticket of about Rs 1 Cr, so the constant is
-    // anchored to the real figure rather than invented. This test documents the
-    // relationship so a future edit to the rate has to confront it.
     const impliedTicket = 4_78_000 / CALCULATOR.saveRate;
     expect(impliedTicket).toBeGreaterThan(0.95 * CRORE);
     expect(impliedTicket).toBeLessThan(1.05 * CRORE);

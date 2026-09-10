@@ -1,39 +1,15 @@
-/**
- * The navigation bar, kept exactly as Propsoch's own.
- *
- * Every label, description and "New" badge below was extracted from the live
- * site by opening each dropdown in a real browser, because the menus are
- * client-rendered and absent from the served HTML.
- *
- * NO ITEM NAVIGATES. This is the navigation bar as user interface only, per
- * instruction. There are deliberately no `href` values in this file at all,
- * which is the point: you cannot accidentally reintroduce a destination that
- * does not exist, because there is nowhere to put one.
- *
- * Each item renders as a real `<button type="button">` rather than an anchor.
- * That matters more than it looks:
- *
- *   - `<a>` without an `href` is not focusable and exposes no role, so it
- *     vanishes from the keyboard order and from a screen reader entirely.
- *   - `<a href="#">` is focusable but lies twice: it announces as a link, and
- *     clicking it actually jumps the user to the top of the page.
- *   - `<button>` is focusable, announces as a button, and doing nothing on
- *     click is a perfectly ordinary thing for a button to do.
- *
- * A non-functional control still has to be a correct control, which is the same
- * rule the page's calls to action already follow.
- */
-
+// Header navigation copy. Labels are the live site's; none of them link anywhere
+// in this rebuild, so they render as buttons rather than dead hrefs.
 export interface NavItem {
   readonly label: string;
   readonly description?: string;
-  /** Renders the "New" badge the original shows on these items. */
+
   readonly isNew?: boolean;
 }
 
 export interface NavGroup {
   readonly label: string;
-  /** Renders as a two column panel with these column headings. */
+
   readonly columns: readonly {
     readonly heading?: string;
     readonly items: readonly NavItem[];
@@ -183,7 +159,6 @@ export const NAV_GROUPS: readonly NavGroup[] = [
   },
 ] as const;
 
-/** The header's own actions, verbatim from the original. */
 export const HEADER_ACTIONS = {
   wishlistLabel: "Wishlist",
   ctaLabel: "Get Started",

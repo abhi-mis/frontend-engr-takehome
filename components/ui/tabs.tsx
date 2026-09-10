@@ -1,5 +1,6 @@
 "use client"
 
+// shadcn/ui primitive. Styling overrides live at the call sites, not here.
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"

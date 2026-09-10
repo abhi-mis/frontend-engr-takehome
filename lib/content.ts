@@ -1,111 +1,28 @@
-/**
- * Every word rendered on this page lives here.
- *
- * Why one file: the brief forbids invented pricing, testimonials or stats, and
- * requires Propsoch's real copy and real numbers. Keeping all copy in a single
- * typed module makes that rule auditable, you can read this file and confirm
- * nothing was made up, instead of grepping through JSX. It is imported only by
- * Server Components, so it costs zero client bytes.
- *
- * PROVENANCE
- * Everything marked "verbatim" was read off the live propsoch.com by rendering
- * the page and extracting the DOM (the site is client rendered, so the copy is
- * absent from the served HTML). Anything not verbatim is flagged inline with the
- * reason, and there are only four such places in the whole file.
- */
-
-// ---------------------------------------------------------------------------
-// Site level
-// ---------------------------------------------------------------------------
-
+// Every string rendered on the page. Copy marked verbatim is Propsoch's own,
+// read off the live site; anything else is flagged where it appears.
 export const SITE = {
   name: "Propsoch",
-  /** Deployment URL. Override with NEXT_PUBLIC_SITE_URL when you deploy. */
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
-  /** Verbatim from the original <title>. */
   title:
     "Propsoch - Bangalore - Real Estate - Search/Buy/Sell Properties | Propsoch",
-  /** Verbatim from the original meta description. */
   description:
     "Buy your dream home confidently with Propsoch - Bangalore's smartest real estate service for home buyers to get expert advice, property insights & reports.",
   locale: "en-IN",
-  /** Verbatim from the original footer. */
   legalEntity: "Thinkr Proptech Private Limited",
 } as const;
 
-// ---------------------------------------------------------------------------
-// Hero
-// ---------------------------------------------------------------------------
-
 export const HERO = {
-  /**
-   * Verbatim. On the original this is one h1 whose tail rotates through three
-   * phrases. We keep the words and render the first phrase as the accent, so the
-   * LCP element is plain server rendered text that paints immediately.
-   */
   headlineLead: "Blindly trusting a broker's",
   headlineAccent: "Sales Pitch?",
-  /** The other two phrases the original cycles. Kept, shown as static text. */
   headlineAlternates: ["Fake Claims?", "Half Info?"],
-
-  /** Verbatim. On the original this sits BELOW the CTA. We move it above it. */
   valueProp:
     "Get independent guidance from advisors who've helped 1000+ families buy the right home.",
-
-  /** Verbatim. The original label, kept per instruction. Does not act on click. */
   primaryCta: "Propsoch Kar",
-  /** Verbatim. Rendered as a clearly subordinate text link. */
   secondaryCta: "Already a member? Login",
-
-  /**
-   * The marquee. One wordmark, repeated: "Bromatker".
-   *
-   * This is Propsoch's pun, and it is the whole campaign. Take "Broker", wedge
-   * "mat" into the middle, and it reads as "Bro mat kar", Hindi for "don't do
-   * it, bro". The original renders it with "mat" raised between "Bro" and
-   * "ker", which is what lets it read as both words at once. The asset on their
-   * CDN is literally named `bromatkar_icon.png`.
-   *
-   * I had this wrong earlier. I had invented "Bro-marketer" and "Bro Mat Kar" as
-   * separate terms in a word list, which broke the pun and added copy Propsoch
-   * never wrote. It is one wordmark, not a list, and it is rendered by
-   * `components/brand/bromatker.tsx` rather than as a plain string, because the
-   * raised "mat" is structural rather than decorative.
-   *
-   * `marqueeRepeat` is how many copies fill one marquee group. The track holds
-   * two groups and translates by -50%, so each group has to be wider than its
-   * container or the loop shows a visible gap.
-   */
   marqueeRepeat: 8,
-
-  /** Verbatim. The trust line above the employer names on the original. */
   trustedByLabel: "Trusted by homebuyers like you from",
 } as const;
 
-/**
- * The employers the original lists under "Trusted by homebuyers like you from".
- * All verbatim from the live site's image alt text.
- *
- * THESE NAMES ARE NO LONGER WHAT RENDERS.
- *
- * The hero now shows the real logo artwork instead of text wordmarks. That
- * artwork comes from Propsoch's OWN CDN, converted to WebP by
- * scripts/fetch-logos.mjs, and the rendered list plus each file's dimensions
- * live in lib/logos.generated.ts.
- *
- * An earlier version of this comment said shipping other companies' logo art
- * was "not something a rebuild should do". That was overcautious: these are the
- * exact files Propsoch already publishes on this exact claim, so reproducing
- * their trust strip is reproducing their page rather than making a new claim
- * with someone else's mark.
- *
- * This array is kept because it is the provenance record for the names, and
- * because it is the source of truth if the strip ever falls back to text.
- *
- * Note: the original has a bug here worth recording. The logo alt-texted
- * "xto10x" is served from a file called `nvidia-logo.png`. Neither is in the
- * eight below, since Propsoch's own list of names does not include it.
- */
 export const TRUSTED_BY: readonly string[] = [
   "Amazon",
   "Google",
@@ -117,10 +34,6 @@ export const TRUSTED_BY: readonly string[] = [
   "Navi",
 ] as const;
 
-// ---------------------------------------------------------------------------
-// Stats. All verbatim numbers.
-// ---------------------------------------------------------------------------
-
 export interface Stat {
   readonly value: string;
   readonly label: string;
@@ -129,98 +42,37 @@ export interface Stat {
 export const STATS: readonly Stat[] = [
   { value: "700+", label: "Projects Across Bangalore" },
   { value: "2,500+", label: "Intelligent Homebuyers" },
-  // The original renders this label as "Hours of Advise" on mobile and
-  // "Hours of Research" on desktop. Spelling corrected, number untouched.
   { value: "8500+", label: "Hours of Advice" },
   { value: "290+", label: "Partner Builders" },
 ] as const;
 
-// ---------------------------------------------------------------------------
-// Comparison
-// ---------------------------------------------------------------------------
-
-/** One line of a comparison: what you care about, and the two answers. */
 export interface ComparisonRow {
   readonly criteria: string;
   readonly propsoch: string;
-  /** The competitor's answer, for whichever table this row belongs to. */
+
   readonly other: string;
 }
 
-/** One tab: a competitor, and the criteria Propsoch compares against them on. */
 export interface ComparisonSet {
   readonly id: string;
   readonly tabLabel: string;
   readonly columnLabel: string;
-  /**
-   * Their parenthetical under the online portals header. Verbatim, and worth
-   * keeping: "online portals" is vague, while naming Housing, 99Acres and
-   * Magicbricks is a specific claim they are willing to put their name to.
-   */
+
   readonly columnNote?: string;
-  /** Screen reader caption for this table. */
+
   readonly caption: string;
   readonly rows: readonly ComparisonRow[];
 }
 
 export const COMPARISON = {
-  /**
-   * Short eyebrow labels above each section heading.
-   *
-   * These are the only new UI strings on the page. They are navigational labels
-   * rather than claims: no number, no promise, nothing that could be mistaken
-   * for a fact about the business. They exist because a bare heading on a plain
-   * background is what made the page read as unfinished, and an eyebrow gives
-   * each section a visible "you are here".
-   */
   eyebrow: "How we compare",
-  /** Verbatim heading. */
   heading: "How are we different?",
-  /** Verbatim sub label above the tabs. */
   subheading: "Compare our services with",
-  /** Verbatim column headers. Each competitor's header lives on its own set. */
   criteriaHeader: "What you care about",
   propsochHeader: "Propsoch",
-  /** Mine. Their tab strip has no accessible name at all. */
   tabsLabel: "Choose who to compare Propsoch with",
 } as const;
 
-/**
- * The `criteria`, `propsoch` and `localBrokers` values are all verbatim.
- *
- * NOT VERBATIM (2 of 4): `onlinePortals`. The original's Online Portals tab is
- * broken on the live site, its tab panel renders empty and clicking the tab does
- * nothing, so there is no copy to reuse. Rather than fabricate claims about named
- * competitors, these describe how a listings marketplace works structurally.
- * Approved wording, plan section 5.3.
- */
-/**
- * PROPSOCH SHIPS TWO TABLES, NOT ONE, AND THIS BUILD USED TO GET THAT WRONG.
- *
- * Their "How are we different?" section has a tab per competitor, and each tab
- * is its OWN table with its OWN criteria. The two do not share a row set:
- * comparing against portals is an argument about DATA (depth, accuracy,
- * sources) and comparing against brokers is an argument about CONDUCT
- * (pressure, spam, support). Only "Transparency" appears in both, and there it
- * is worded identically.
- *
- * What this build shipped before was ONE nine row table with a third column for
- * online portals that I had WRITTEN MYSELF, by taking their nine broker
- * criteria and inventing a portal answer for each. Seven of those nine cells
- * were mine: "Lead form, then calls from multiple agents", "Ranked by paid
- * placement, not fit", "Your number is shared with every listed agent" and so
- * on. They are plausible, and they are not Propsoch's. Inventing criticism of
- * named competitors and presenting it as a client's own comparison is exactly
- * the sort of content this project is not allowed to make up.
- *
- * It also hid their real argument. "80+ data points against 20-40", "verified
- * by architects against loose verification", "RERA, GMaps, CDP" against "added
- * by developer & broker" is sharper and more specific than anything I wrote,
- * and none of it was on the page.
- *
- * Both tables are verbatim from their own difference.data.tsx. The one change
- * is a trailing space trimmed from "Added by developer & broker ".
- */
 export const COMPARISON_SETS: readonly ComparisonSet[] = [
   {
     id: "online-portals",
@@ -256,77 +108,27 @@ export const COMPARISON_SETS: readonly ComparisonSet[] = [
   },
 ] as const;
 
-// ---------------------------------------------------------------------------
-// Video testimonials
-//
-// All three are VERBATIM, lifted from the array that drives the same carousel
-// on propsoch.com. Their homepage only ever renders the active slide's quote,
-// so two of the three are not in the served HTML at all; these came from the
-// page chunk, where the full array is a plain object literal.
-//
-// One character worth flagging. The second quote contains an EN DASH (U+2013),
-// not a hyphen and not an em dash. It is Propsoch's punctuation inside a
-// customer's own sentence, and the instruction is to keep their text exactly as
-// it is, so it stays. The project's no-em-dash rule is about MY prose, and a
-// quotation is not my prose to tidy.
-//
-// The third testimonial has ONE person where the others have two. The component
-// handles that rather than the data padding itself out, since inventing a
-// second name would be inventing content.
-//
-// A BUG IN THE ORIGINAL, AND THE ONE THING CHANGED HERE
-//
-// Propsoch's array pairs every quote with the WRONG video. It is rotated by one
-// against the actual uploads, so their live carousel captions each testimonial
-// with somebody else's name.
-//
-// The evidence, since this is a claim about someone else's data:
-//
-//   video         its YouTube title            its thumbnail says   their array says
-//   OZMT9fgbH_c   "A Bangalore Buyer's Story"  D.L. Narasimham      Bharat + Neerja
-//   Nid3XKVEApg   "Meet Bharath & Neerja"      Bharath & Neerja     Ankita + Vishal
-//   XrsfHS7tCN0   (title not returned)         Ankita & Vishal      D.L. Narasimham
-//
-// Nid3XKVEApg settles it on its own: the video's own title names Bharath and
-// Neerja, and its thumbnail agrees, while the array calls it Ankita. The other
-// two follow from the same thumbnails, which are custom artwork that Propsoch
-// made and which name the speaker on the image itself.
-//
-// So the youtubeId on each entry below is CORRECTED to the video that actually
-// contains that person. Every word, name and role is still theirs, untouched,
-// and the display order is still theirs. Shipping the rotation as-is would have
-// put a real person's name under a different real person's face, which is a
-// worse thing to be faithful about than a field mapping.
-//
-// This is the second data bug found on that page. The first is the logo alt
-// texted "xto10x" served from a file called nvidia-logo.png, noted above.
-// ---------------------------------------------------------------------------
-
 export interface TestimonialPerson {
-  /** Verbatim name. */
   readonly name: string;
-  /** Verbatim role, their field is called "about". */
+
   readonly role: string;
 }
 
 export interface Testimonial {
-  /** The YouTube id. Posters are keyed by this in lib/posters.generated.ts. */
   readonly youtubeId: string;
-  /** Verbatim quote, without the curly quotation marks the original wraps it in. */
+
   readonly quote: string;
-  /** One or two people. */
+
   readonly people: readonly TestimonialPerson[];
 }
 
 export const TESTIMONIALS_SECTION = {
   eyebrow: "Testimonials",
-  /** Verbatim, the heading their homepage passes to this carousel. */
   heading: "Real stories from people who've been there, bought that.",
 } as const;
 
 export const TESTIMONIALS: readonly Testimonial[] = [
   {
-    // Corrected from OZMT9fgbH_c. See the mapping note above.
     youtubeId: "Nid3XKVEApg",
     quote:
       "They helped me say no to impulse buying & yes to framework based buying",
@@ -336,7 +138,6 @@ export const TESTIMONIALS: readonly Testimonial[] = [
     ],
   },
   {
-    // Corrected from Nid3XKVEApg. See the mapping note above.
     youtubeId: "XrsfHS7tCN0",
     quote:
       "We highly recommend every homebuyer get the Peace of Mind report – it's truly a peace of mind!",
@@ -346,7 +147,6 @@ export const TESTIMONIALS: readonly Testimonial[] = [
     ],
   },
   {
-    // Corrected from XrsfHS7tCN0. See the mapping note above.
     youtubeId: "OZMT9fgbH_c",
     quote:
       "The service Propsoch provides is outstanding, particularly for the price they offer!",
@@ -356,102 +156,28 @@ export const TESTIMONIALS: readonly Testimonial[] = [
   },
 ];
 
-// ---------------------------------------------------------------------------
-// Featured in
-//
-// Their own heading. The five publications and the article each logo links to
-// come from their FeaturedIn component; scripts/fetch-media-logos.mjs has the
-// provenance and the note about the seven logos that are not on their CDN.
-// ---------------------------------------------------------------------------
-
 export const PRESS = {
-  /** Verbatim. */
   heading: "Featured in India's top media",
-  /**
-   * Mine, and it exists because a logo is a picture of a brand, not a link
-   * name. A screen reader reading five links called "The Print", "ANI"... is
-   * being told who published, never that there is something to read.
-   *
-   * The publication goes last on purpose. "Read the ${name} article" produces
-   * "Read the The Print article", because one of these five mastheads already
-   * starts with an article. Putting the name after "on" reads correctly for
-   * every one of them without special-casing any.
-   */
   linkLabel: (name: string) => `Read the article about Propsoch on ${name}`,
 } as const;
 
-// ---------------------------------------------------------------------------
-// Brochure vs reality: the master plan comparison
-//
-// All verbatim. The heading is the desktop wording, which ends in a full stop;
-// their mobile markup drops it. The three overlay labels are theirs too, down
-// to the guillemets around "Drag".
-//
-// The images are the two their own product page compares, fetched and re-encoded
-// by scripts/fetch-plan-media.mjs. Alt text is MINE, because theirs is a
-// truncated internal string ("...n Primitives Light") that describes nothing.
-// Alt text is not content, it is a description of content, so writing a real one
-// is a fix rather than an invention.
-// ---------------------------------------------------------------------------
-
 export const REALITY = {
   eyebrow: "See the reality",
-  /** Verbatim, desktop wording. */
   heading: "Brokers show you the brochure. We show the reality.",
-  /** Verbatim. */
   body:
     "Uncover both the magic and the missteps in the layout and amenities, usually hidden in glamorous model-flats & fancy brochures.",
-  /** Verbatim overlay labels. */
   brokerLabel: "Broker",
   propsochLabel: "Propsoch",
   dragLabel: "Drag",
-  /** Mine. See the note above. */
   brokerAlt:
     "A builder's marketing site plan: a glossy aerial render with numbered amenities and landscaped grounds.",
   propsochAlt:
     "The same site as a sanctioned technical drawing, with Propsoch's annotations marking a high tension line and a water treatment plant.",
-  /** Mine. The control needs a name that says what moving it does. */
   sliderLabel:
     "Drag to compare the builder's brochure with Propsoch's analysis of the same plan",
 } as const;
 
-// ---------------------------------------------------------------------------
-// Floor plan reader
-//
-// ADDITIONAL SECTION 1 OF 2, and the one place on this page that gives
-// something away rather than asking for something.
-//
-// WHERE IT COMES FROM
-//
-// Propsoch's own claims set this up and then stop short of it. Their
-// comparison table says their advisors are "Trained architects" against a
-// broker's "Local sales people", and that their data is "Verified by
-// architects". The reality check section above says they "Uncover both the
-// magic and the missteps in the layout and amenities, usually hidden in
-// glamorous model-flats & fancy brochures". All three are their words, and all
-// three are assertions that somebody on their side knows how to read a
-// drawing.
-//
-// This section is the demonstration of that claim. It hands the reader the
-// same five checks and lets them try it, which is a stronger proof of "trained
-// architects" than the phrase "trained architects".
-//
-// PROVENANCE, PLAINLY
-//
-// The five checks and their explanations are MINE. They are general
-// architectural practice, not Propsoch statistics, and they are written to be
-// useful on any plan rather than to describe a Propsoch product. Nothing here
-// is presented as a Propsoch claim, a number, or a promise, which is the line
-// this file cares about. The one figure in the copy, a balcony depth of about
-// 1.2 metres, is a rule of thumb about furniture fitting, and it is worded as
-// one.
-//
-// The plan itself is drawn, not traced from a real project, and the note under
-// the figure says so on screen rather than in a comment.
-// ---------------------------------------------------------------------------
-
 export interface FloorPlanCheck {
-  /** Also the radio input's id and the svg zone's data-zone. One string. */
   readonly id: string;
   readonly title: string;
   readonly body: string;
@@ -462,9 +188,7 @@ export const FLOOR_PLAN = {
   heading: "Read a floor plan like an architect",
   intro:
     "The plan is the one document you are always handed and rarely taught to read. These are the five things our advisors look at first, before anyone mentions price.",
-  /** The radio group's accessible name. Visually hidden. */
   groupLabel: "Choose what to look at on the plan",
-  /** On screen, under the drawing. Not a disclaimer in a tooltip. */
   figureNote: "A representative two-bedroom plan, not a specific project.",
 } as const;
 
@@ -501,49 +225,23 @@ export const FLOOR_PLAN_CHECKS: readonly FloorPlanCheck[] = [
   },
 ] as const;
 
-// ---------------------------------------------------------------------------
-// Timeline
-// ---------------------------------------------------------------------------
-
 export interface TimelineStep {
-  /** Week marker, verbatim from the original. */
   readonly marker: string;
-  /** Step title, verbatim from the original. */
+
   readonly title: string;
-  /** Supporting line. See the note below. */
+
   readonly detail: string;
 }
 
 export const TIMELINE = {
   eyebrow: "The process",
-  /**
-   * Verbatim heading, split so "25 days" can carry the emphasis their own h2
-   * gives it (they set it semibold italic). Kept as two fields rather than one
-   * string with markup in it, because content should not contain tags.
-   */
   headingLead: "Here's how you will find a home with us in",
   headingEmphasis: "25 days",
-  /** The whole heading as one string, for anything that needs plain text. */
   heading: "Here's how you will find a home with us in 25 days",
-  /**
-   * Verbatim. On their page this sits ABOVE the heading as a small grey
-   * lead-in. Here it sits below it, because every other section on this page
-   * introduces itself with the same eyebrow-then-heading pattern and breaking
-   * that for one section costs more than the ordering gains. Same words, same
-   * role, one line lower.
-   */
   sub: "Buying a property should not take you forever",
-  /** Verbatim. Does not act on click, like every other CTA here. */
   cta: "Book An Appointment",
 } as const;
 
-/**
- * The written testimonial that sits under the process CTA on their page.
- *
- * Verbatim, including the straight double quotes they wrap it in and the italic
- * on "research-based approach". Split into three parts so that emphasis can be
- * real <em> markup rather than a string containing tags.
- */
 export const PROCESS_TESTIMONIAL = {
   quoteLead: '"Their scientific and ',
   quoteEmphasis: "research-based approach",
@@ -551,20 +249,9 @@ export const PROCESS_TESTIMONIAL = {
     ' to homebuying gave us a lot of comfort and solved our biggest pain point."',
   name: "Roshik Shenoy",
   role: "Partner, Human Capital @ Deloitte",
-  /** Their avatar's fallback initials, kept for the same reason they have it. */
   initials: "RS",
 } as const;
 
-/**
- * Markers and titles are verbatim. The original names six activities and groups
- * them under five week markers, which is why Week 1 carries two.
- *
- * NOT VERBATIM (3 of 4): the `detail` lines. The original's step cards are
- * rendered client side as mixed markup that does not extract cleanly as prose,
- * so each detail is condensed from facts recovered elsewhere on the same page
- * (10 to 12 curated properties, 4 to 5 shortlisted, 20+ curation factors,
- * 2 complimentary Peace of Mind Reports, trained architects). No new claims.
- */
 export const TIMELINE_STEPS: readonly TimelineStep[] = [
   {
     marker: "Today",
@@ -598,84 +285,23 @@ export const TIMELINE_STEPS: readonly TimelineStep[] = [
   },
 ] as const;
 
-// ---------------------------------------------------------------------------
-// Advisors
-//
-// ADDITIONAL SECTION 2 OF 2.
-//
-// WHY THIS SECTION EXISTS
-//
-// The comparison table's sharpest row is the last one: "Advisor: Trained
-// architects" against "Local sales people". It is the whole business in five
-// words, and until now the page made that claim once, in a table cell, and
-// never came back to it. An advisory service is bought on who the adviser is.
-//
-// WHAT IS REAL HERE AND WHAT IS NOT. READ THIS BEFORE EDITING.
-//
-// Real, and quoted from Propsoch's own material:
-//
-//   "Trained architects"            COMPARISON_SETS, local-brokers, Advisor
-//   "Verified by architects"        COMPARISON_SETS, online-portals, Data Accuracy
-//   "on-ground market experts"      COMPARISON_SETS, local-brokers, Site Visits
-//   "Based on 20+ factors"          COMPARISON_SETS, local-brokers, Project Curation
-//   "80+ data points"               COMPARISON_SETS, online-portals, Information Depth
-//   "RERA, GMaps, CDP etc."         COMPARISON_SETS, online-portals, Data Sources
-//   Karnataka and Maharashtra RERA  FOOTER_LEGAL, both registration numbers
-//
-// Every `credential` and every `looksAt` line below is built from those. The
-// legal role is grounded in their own FAQ, which asks "Do you also assist with
-// home loans, taxation & legal matters?", and in the two RERA registrations
-// they publish.
-//
-// Every area in `covers` is a real serviceable area from lib/pincodes.ts,
-// which is verified against India Post. That is not a convention, it is
-// enforced: lib/__tests__/advisors.test.ts fails the build if a name here is
-// not a place we claim to cover. An earlier draft of this list said
-// "Devanahalli", which is not in that map, and the test is the reason it is
-// not in this one.
-//
-// NOT real, and deliberately absent:
-//
-//   Names. Photographs. Years of experience. Registration numbers. Headshots.
-//
-// An earlier version of this section carried lines like "B.Arch, 9 years in
-// residential design". They read well and they were invented people with
-// invented careers, which is the same class of mistake as the fabricated
-// competitor claims recorded further up this file, and worse, because these
-// are pretend colleagues. The credential lines now carry only Propsoch's own
-// words, and `footnote` says on screen exactly which parts of the section are
-// structure waiting to be filled in.
-// ---------------------------------------------------------------------------
-
 export interface Advisor {
-  /** The role, as the section's own heading for that card. */
   readonly role: string;
-  /** Qualification, in Propsoch's words. Never a fabricated CV line. */
+
   readonly credential: string;
-  /** Micromarkets. Every one is asserted against lib/pincodes.ts by a test. */
+
   readonly covers: readonly string[];
-  /** What this person reads first, built from Propsoch's published claims. */
+
   readonly looksAt: string;
 }
 
 export const ADVISORS_SECTION = {
   eyebrow: "The team",
   heading: "The people who will actually advise you",
-  /**
-   * Mine, and every clause of it is one of their table rows turned into a
-   * sentence: "Consultative, no pressure" and "No spam" against a broker's
-   * "High pressure sales tactics", "Trained architects", and site visits
-   * "Assisted by on-ground market experts".
-   */
   intro:
     "Not a call centre and not a broker. Every shortlist is put together by someone who has drawn buildings for a living and walked the micromarket you are buying in.",
-  /** Column labels inside each card. */
   coversLabel: "Covers",
   looksAtLabel: "Looks at",
-  /**
-   * The honesty line, on screen rather than in a comment. It is the reason
-   * this section can exist at all without inventing four people.
-   */
   footnote:
     "Roles, coverage and focus are drawn from Propsoch's own published claims. Names, photographs and registration numbers are theirs to fill in.",
 } as const;
@@ -707,76 +333,23 @@ export const ADVISORS: readonly Advisor[] = [
   },
 ] as const;
 
-// ---------------------------------------------------------------------------
-// Guided Home Buying
-//
-// The closing argument: everything the service does, in one list, next to what
-// it is worth and what it costs you to start.
-//
-// PROVENANCE
-//
-// All of it is Propsoch's, read off their loyalty reward calculator page
-// (propsoch.com/loyalty-reward-calculator) by rendering it and extracting the
-// DOM, the same way the rest of this file was sourced. The heading, the six
-// capability lines, the card's title, its two supporting sentences, the
-// savings figure and both button labels are verbatim.
-//
-// `heading` is the same string as CALCULATOR.heading further down. That is not
-// an accident and it is not drift: Propsoch use the identical sentence in both
-// places, and the calculator block it also lives in is currently dormant (its
-// section was removed from the page at your request, the component and content
-// are kept). The two are written out separately rather than one importing the
-// other because they are two independent quotations of the same source, and a
-// shared constant would imply a dependency that does not exist.
-//
-// THE ONE STRING THAT IS MINE
-//
-// `note`. Propsoch print "Save Rs 4,78,125/-" as a flat number because on
-// their page it sits directly beneath a calculator you have just moved two
-// sliders on, so the inputs behind it are on screen. Here there is no
-// calculator (removed at your request), so the figure would arrive with no
-// context at all. The brief requires an estimate to be labelled illustrative
-// ON SCREEN rather than in a tooltip, so it is labelled. The wording matches
-// CALCULATOR.disclosure, which exists for exactly the same reason.
-//
-// The figure itself is real and it is theirs: at a Rs 2.5 Cr property and a
-// Rs 2.5 L monthly household income, their own calculator breaks it down as a
-// Rs 3,00,000 loyalty reward plus Rs 1,78,125 of time valued at the buyer's
-// own hourly rate, totalling the Rs 4,78,125 printed here.
-// ---------------------------------------------------------------------------
-
 export const GUIDED = {
-  /**
-   * Mine, and a navigational label rather than a claim, on the same reasoning
-   * as COMPARISON.eyebrow: no number, no promise, nothing that could be
-   * mistaken for a fact about the business.
-   */
   eyebrow: "Why Propsoch",
-  /** Verbatim. Also CALCULATOR.heading, see the note above. */
   heading: "Choose the smart way to save ~₹4.78 L & 3 months of your life.",
-  /** Verbatim. */
   intro:
     "You're about to make the biggest purchase of your life. We make sure you do it intelligently.",
-
-  /** Verbatim, the card that carries the offer. */
   cardTitle: "Guided Home Buying",
   cardBody:
     "9 in 10 homebuyers have bought a home via us within 25 days. Trusted by 1000+ buyers from Google, Amazon, Peak XV etc.",
-  /** Verbatim, including their trailing "/-". */
   savingsLabel: "Save",
   savingsValue: "₹4,78,125/-",
-  /** Verbatim. */
   cardFooter:
     "Experience truly unbiased advisory & get total peace of mind",
-  /** Verbatim, both of them. Neither performs an action, as everywhere else. */
   primaryCta: "Book A Free Call",
   secondaryCta: "See How You Will Save",
-
-  /** Mine. See the note above for why this line has to exist. */
   note: "Illustrative estimate based on Propsoch's published figures. Not a quote.",
 } as const;
 
-/** The six capability lines from the same block. All verbatim. */
 export const GUIDED_CAPABILITIES: readonly string[] = [
   "Work with trained architects",
   "Check builders, areas & projects",
@@ -786,38 +359,22 @@ export const GUIDED_CAPABILITIES: readonly string[] = [
   "Get rewarded handsomely",
 ] as const;
 
-// ---------------------------------------------------------------------------
-// Savings calculator
-// ---------------------------------------------------------------------------
-
 export const CALCULATOR = {
   eyebrow: "Savings calculator",
-  /** Verbatim heading from the original. */
   heading: "Choose the smart way to save ~₹4.78 L & 3 months of your life.",
   intro:
     "Move the slider to your budget and see what Propsoch's average saving works out to.",
   sliderLabel: "Your budget",
   resultLabel: "Estimated saving",
-  /** Required by the brief: estimates must be labelled illustrative on screen. */
   disclosure:
     "Illustrative estimate based on Propsoch's average savings. Not a quote.",
-  /**
-   * The published average saving is ~Rs 4.78 L. At this 4.8% rate that implies an
-   * average ticket of about Rs 99.6 L, so the rate is consistent with the real
-   * published figure rather than an arbitrary constant.
-   */
   saveRate: 0.048,
-  minBudget: 50_00_000, // Rs 50 Lakh
-  maxBudget: 25_00_00_000, // Rs 25 Crore
+  minBudget: 50_00_000,
+  maxBudget: 25_00_00_000,
 } as const;
-
-// ---------------------------------------------------------------------------
-// Pincode checker
-// ---------------------------------------------------------------------------
 
 export const PINCODE = {
   eyebrow: "Coverage",
-  /** Verbatim heading from the original footer section. */
   heading: "Top Locations We Cover",
   intro:
     "Enter a 6-digit pincode to check whether Propsoch advisors cover that area today.",
@@ -828,10 +385,6 @@ export const PINCODE = {
   notCoveredMessage: "We're not in that area yet.",
   notCoveredHelp: "Propsoch currently advises homebuyers in Bangalore and Mumbai.",
 } as const;
-
-// ---------------------------------------------------------------------------
-// Navigation and footer. Section links are real in-page anchors.
-// ---------------------------------------------------------------------------
 
 export interface NavLink {
   readonly label: string;
@@ -846,24 +399,10 @@ export const SECTION_LINKS: readonly NavLink[] = [
   { label: "Who advises you", href: "#advisors" },
   { label: "Frequently asked questions", href: "#faq" },
 ] as const;
-// The "Savings calculator" entry that used to point at #calculator came out
-// with the section (removed at your request, see app/page.tsx). Re-add both
-// together if the section comes back, or this list links to nothing.
 
-/**
- * All verbatim from the original footer.
- *
- * NOT VERBATIM (4 of 4), by omission: the original footer also prints a GSTIN of
- * "12314ASDAD213" and a CIN of "21312215151661". Both are obvious placeholder
- * strings on the live site, so reproducing them would amount to shipping
- * fabricated registration data. They are left out. The two RERA registrations
- * below are well formed and are reproduced as-is.
- */
 export const FOOTER = {
   tagline:
     "Independent home buying advice from trained architects, not commission-driven brokers.",
-
-  /** Builders the original links in its footer. All verbatim. */
   buildersHeading: "Partner Builders",
   builders: [
     "Prestige Developers",
@@ -872,12 +411,6 @@ export const FOOTER = {
     "Sobha Developers",
     "Assetz Developers",
   ],
-
-  /**
-   * Propsoch's real social accounts, taken from the live site's own links.
-   * These stay as real links: they are public profiles that exist, and they are
-   * navigation rather than a call to action.
-   */
   socialHeading: "Follow Propsoch",
   social: [
     { label: "Instagram", href: "https://www.instagram.com/propsoch.club" },
@@ -922,11 +455,5 @@ export const FOOTER = {
   ],
 } as const;
 
-/**
- * Rebuild notice. This is a performance and accessibility rebuild of the
- * Propsoch landing page, not the live product, and no button on it performs a
- * real action. Saying so in the footer is more honest than a page that looks
- * transactional but is not.
- */
 export const REBUILD_NOTICE =
   "This is an independent rebuild of the Propsoch landing page, focused on performance, accessibility and responsive design. Calls to action are intentionally non-functional.";

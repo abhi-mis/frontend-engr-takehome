@@ -1,23 +1,12 @@
 import { ImageResponse } from "next/og";
 import { HERO, SITE } from "@/lib/content";
 
-/**
- * The Open Graph card, rendered at BUILD time by next/og.
- *
- * Worth being explicit about why this is free: `next/og` runs Satori on the
- * server during the build and emits a PNG. Nothing here ships to the browser,
- * so a share image costs zero client bytes and zero main-thread work. The
- * alternative, hand-exporting a PNG in a design tool, is the same bytes for the
- * crawler but drifts from the site's copy and palette the moment either changes.
- * This reads the real content and the real hex values.
- */
-
+// OG image rendered at build time by next/og, so it costs no client JavaScript.
+// Colours are literals because next/og cannot read CSS custom properties.
 export const alt = `${SITE.name}: independent home buying advice`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-// The tokens are repeated as literals because Satori resolves no CSS custom
-// properties: it has no cascade and no stylesheet, only inline styles.
 const BRAND = "#FF6D33";
 const BRAND_STRONG = "#C2410C";
 const INK = "#212130";
@@ -40,9 +29,6 @@ export default function OpengraphImage() {
           fontFamily: "sans-serif",
         }}
       >
-        {/* Wordmark, with the house glyph drawn as plain divs. Satori supports
-            a useful subset of flexbox but no SVG paths, so the mark is
-            simplified to a rounded brand square rather than the full logo. */}
         <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
           <div
             style={{
@@ -65,7 +51,6 @@ export default function OpengraphImage() {
             Propsoch
           </div>
         </div>
-
         <div style={{ display: "flex", flexDirection: "column" }}>
           <div
             style={{
@@ -83,7 +68,6 @@ export default function OpengraphImage() {
               {HERO.headlineAccent}
             </span>
           </div>
-
           <div
             style={{
               marginTop: "26px",
@@ -96,8 +80,6 @@ export default function OpengraphImage() {
             {HERO.valueProp}
           </div>
         </div>
-
-        {/* The real numbers. */}
         <div style={{ display: "flex", gap: "56px" }}>
           {[
             ["700+", "Projects in Bangalore"],

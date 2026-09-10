@@ -7,6 +7,7 @@ import {
 
 const CITIES: readonly ServiceCity[] = ["Bangalore", "Mumbai"];
 
+// Pincode lookup: shape, normalisation and the covered/not-covered branches.
 describe("lookupPincode validation", () => {
   it("rejects anything that is not six digits", () => {
     expect(lookupPincode("56003")).toEqual({ status: "invalid" });
@@ -45,9 +46,6 @@ describe("lookupPincode results", () => {
   });
 
   it("distinguishes a valid uncovered pincode from an invalid one", () => {
-    // 110001 is Connaught Place, Delhi. A real pincode, outside our coverage.
-    // This is the distinction that matters: showing "that is not a pincode" to
-    // someone in Delhi would be wrong and confusing.
     expect(lookupPincode("110001")).toEqual({ status: "not-covered" });
     expect(lookupPincode("11000")).toEqual({ status: "invalid" });
   });
@@ -73,11 +71,6 @@ describe("SERVICE_PINCODES data integrity", () => {
   });
 
   it("has no duplicate keys", () => {
-    // Object literals silently drop duplicates, so a repeated pincode would
-    // vanish rather than error. Comparing the parsed key count against the
-    // count of pincode-shaped keys in the source is the only way to catch it,
-    // and scripts/verify-pincodes.mjs does that against the file. Here we at
-    // least assert the runtime shape is a clean set.
     const unique = new Set(entries.map(([pincode]) => pincode));
     expect(unique.size).toBe(entries.length);
   });
@@ -91,7 +84,7 @@ describe("SERVICE_PINCODES data integrity", () => {
   it("has a non-empty, human readable area name for every entry", () => {
     for (const [pincode, area] of entries) {
       expect(area.area.trim().length, `${pincode} has an empty area`).toBeGreaterThan(2);
-      // India Post's internal suffixes should not leak into user-facing labels.
+
       expect(area.area, `${pincode} looks like a raw post office name`).not.toMatch(
         /\b(S\.O\.|B\.O\.|H\.O\.)$/
       );

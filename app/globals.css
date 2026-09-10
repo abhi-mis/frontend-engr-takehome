@@ -3,43 +3,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ---------------------------------------------------------------------------
-   Design tokens
-   ---------------------------------------------------------------------------
-   Tailwind 4 is CSS first, so this @theme block is the single source of truth
-   for the Propsoch palette, type scale and radius. There is no
-   tailwind.config.js.
-
-   Every colour here was read off the live propsoch.com stylesheet rather than
-   guessed, with the accessibility variants added on top. The full reasoning is
-   in the @theme block below.
-
-   scripts/check-contrast.mjs asserts every rendered pair. Change a value here
-   and change it there, then run `npm run check:contrast`.
---------------------------------------------------------------------------- */
-
-/* ---------------------------------------------------------------------------
-   The rupee sign, and a 21.2 KB font download it was causing.
-
-   Measured on a production build: the page requested TWO Plus Jakarta Sans
-   subsets, 26.6 KB and 21.2 KB. Auditing every non-ASCII character on the page
-   found exactly one: the rupee sign, U+20B9, five times.
-
-   Google's `latin` subset covers U+0-FF plus a handful of extras including
-   U+20AC (the euro). It does NOT include U+20B9. The rupee lives in `latin-ext`
-   (U+20AD-20C0). So five currency symbols were pulling a whole extra 21.2 KB
-   font file, on a page whose entire stylesheet is under 10 KB.
-
-   The fix uses unicode-range for what it is actually for. This family covers a
-   single codepoint and resolves only to fonts already on the device, so it needs
-   no network request. Placed FIRST in the stack, the browser matches U+20B9
-   here, and `latin-ext` is never requested. Every other character falls straight
-   through to Plus Jakarta Sans.
-
-   If none of these local faces exist, the browser simply falls through to Plus
-   Jakarta Sans and downloads latin-ext as before, so the worst case is today's
-   behaviour rather than a missing glyph.
---------------------------------------------------------------------------- */
 @font-face {
   font-family: "Rupee Local";
   src:
@@ -50,64 +13,34 @@
   font-display: swap;
 }
 
+/* Design tokens. Mirrored in scripts/check-contrast.mjs; change both together. */
 @theme {
-  /* Brand.
-     The orange is rgb(255, 109, 50). That is not a guess: it is the fill in
-     Propsoch's own logo SVG. Three variants exist because one orange cannot do
-     every job accessibly:
+  --color-brand: #ff6d33;
+  --color-brand-button: #ff6d33;
+  --color-brand-display: #ef5410;
+  --color-brand-strong: #c2410c;
 
-       --color-brand          #FF6D33  FILLS ONLY. 2.71:1 on the page, so it can
-                                       never be text at any size, but it is the
-                                       real brand colour and it is what should
-                                       dominate visually. The timeline markers,
-                                       the artwork, the stat chips, and the
-                                       typewriter caret in the hero headline.
-       --color-brand-display  #EF5410  LARGE TEXT ONLY (>=24px). 3.41:1, clears
-                                       the large-text bar. The hero headline
-                                       accent. Reads as the brand orange rather
-                                       than as rust.
-       --color-brand-strong   #C2410C  SMALL TEXT, icons, and the PRIMARY
-                                       BUTTON FILL. 5.00:1 as text on the page,
-                                       and white on it is 5.18:1, which is what
-                                       lets the button carry a white label with
-                                       no border. Links, labels, focus rings. */
-  --color-brand: #ff6d33; /* bright brand fills and surfaces */
-  --color-brand-button: #ff6d33; /* CTA surface, paired with warm ink text */
-  --color-brand-display: #ef5410; /* large display text only, >=24px */
-  --color-brand-strong: #c2410c; /* text, icons, AND the primary button fill */
-  /* Button hover and active. Both darker than the resting fill, because the
-     button now carries WHITE text and white needs the ground to stay dark:
-     lightening on hover would push the label's contrast down, which is what
-     shadcn's default `bg-primary/80` does. */
   --color-brand-hover: #a8380a;
   --color-brand-active: #8f2f08;
   --color-brand-soft: #ffbfa5;
-  --color-brand-tint: #fff3ed; /* highlighted Propsoch column */
-  --color-accent-yellow: #ffd250; /* one flourish, non semantic */
+  --color-brand-tint: #fff3ed;
+  --color-accent-yellow: #ffd250;
 
-  /* Neutrals, taken from the live site */
   --color-ink: #212130;
   --color-ink-muted: #66677e;
   --color-surface: #fbfbfa;
   --color-surface-alt: #f2f3f7;
-  --color-line: #e3e4ec; /* decorative separators */
-  --color-line-strong: #7e7f94; /* borders of real controls, clears 3:1 */
+  --color-line: #e3e4ec;
+  --color-line-strong: #7e7f94;
   --color-on-brand: #1a1206;
-  /* Secondary text on the dark surfaces (the timeline section, the footer
-     panel). A NAMED token rather than `text-surface/70`, because an alpha has
-     no fixed contrast ratio: it depends on whatever it composites against, and
-     that is exactly the bug found in shadcn's tab styling. This is 6.84:1 on
-     --color-ink and it is asserted in the contrast gate. */
+
   --color-ink-muted-on-dark: #a8a9bc;
 
-  /* Type. One variable family, distinction comes from scale and weight.
-     "Rupee Local" is first but only claims U+20B9, see the @font-face above. */
   --font-sans:
     "Rupee Local", var(--font-jakarta), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", Roboto, sans-serif;
   --font-heading: var(--font-sans);
 
-  /* Modular scale, roughly 1.25, fluid where it needs to be */
   --text-xs: 0.8125rem;
   --text-xs--line-height: 1.45;
   --text-sm: 0.875rem;
@@ -129,39 +62,9 @@
   --text-4xl--line-height: 1.05;
   --text-4xl--letter-spacing: -0.038em;
 
-  /* Surface ramp.
-
-     Three steps, so a card can read by DEPTH instead of by outline. Before
-     this there were two surfaces plus a --color-line hairline, which meant
-     every card drew a 1px grey border to separate itself, and a grey border
-     on near-white is the strongest "framework default" signal there is.
-
-       sunken   #F2F3F7  section grounds that hold cards
-       surface  #FBFBFA  the page itself
-       raised   #FFFFFF  cards and panels, lifted by shadow, no border
-
-     --color-surface-alt is kept as an alias of sunken so existing classes go
-     on working rather than needing a sweep. */
   --color-surface-raised: #ffffff;
   --color-surface-sunken: #f2f3f7;
 
-  /* Shadow scale.
-
-     Every shadow on the page used to be an arbitrary value written inline, and
-     no two agreed: 8px/24px on one card, 14px/34px on the next, 1px/2px on the
-     buttons. Inconsistent depth reads as noise rather than as light.
-
-     Two things make these read as Propsoch shadows rather than generic ones:
-
-       1. They are tinted with the INK hue, rgb(33 33 48), not black. Pure
-          black over a warm surface (#FBFBFA) goes muddy grey-brown, while the
-          ink tint keeps the shade in the same family as the type.
-       2. Each is TWO layers with a negative spread: a tight contact shadow
-          plus a wide soft one. That is how real light falls, and a
-          single-layer shadow is the tell of a flat design.
-
-     Decorative only. Nothing on the page relies on a shadow to be visible or
-     to mark a boundary, which is what keeps WCAG 1.4.11 out of it. */
   --shadow-xs: 0 1px 2px -1px rgb(33 33 48 / 0.08);
   --shadow-sm:
     0 1px 2px -1px rgb(33 33 48 / 0.08), 0 2px 6px -2px rgb(33 33 48 / 0.06);
@@ -169,57 +72,18 @@
     0 2px 4px -2px rgb(33 33 48 / 0.06), 0 10px 20px -8px rgb(33 33 48 / 0.1);
   --shadow-lg:
     0 4px 8px -4px rgb(33 33 48 / 0.06), 0 24px 44px -16px rgb(33 33 48 / 0.14);
-  /* The brand-tinted pair, for orange elements that glow rather than cast. */
+
   --shadow-brand: 0 10px 26px -8px rgb(255 109 51 / 0.34);
   --shadow-brand-glow: 0 0 12px rgb(255 109 50 / 0.55);
 
-  /* Layout */
   --spacing: 0.25rem;
   --radius-pill: 999px;
 
-  /* Semantic radii.
-
-     The numeric radii already form a scale off --radius (rounded-xl is
-     1.05rem, 2xl is 1.35rem, 3xl is 1.65rem), so the problem was never that
-     they were unrelated. It was that the SAME role picked a different step in
-     different files: the calculator panel was 2xl, the comparison card xl, the
-     footer panel 3xl. These two tokens name the roles instead, so that a card
-     is a card everywhere and a panel is a panel.
-
-     card is deliberately wider than the old 2xl. A generous corner on a large
-     surface against a tight one on a small control (--radius, 0.75rem) is the
-     radius relationship that reads as considered rather than as one value
-     applied everywhere. */
   --radius-card: 1.25rem;
   --radius-panel: 1.75rem;
   --radius-inner: 0.875rem;
 }
 
-/* ---------------------------------------------------------------------------
-   Cursor, sitewide.
-
-   Tailwind 4's preflight matches the browser default for a native <button>,
-   which is `cursor: default`, not a pointer. That is correct for the
-   increment arrows on a number input, and wrong for everything this site
-   actually uses <button> for: the primary CTA, the FAQ accordion triggers,
-   the comparison and process tabs, the mobile nav toggle, the video play
-   button. All of those are links in function even where they are buttons in
-   markup, and a link-shaped control that shows the text cursor on hover reads
-   as broken before anyone has clicked anything.
-
-   ONE RULE, RATHER THAN cursor-pointer ON EVERY BUTTON.
-
-   Hunting down every <button> across components/ui/button.tsx,
-   PrimaryCta, the accordion, both tab strips and the mobile nav, and adding
-   the utility to each, is the kind of fix that is correct today and wrong the
-   day someone adds a ninth button and forgets the class. A tag selector
-   cannot be forgotten. `[role="button"]` is included for the same reason a
-   `<summary>` or a styled `<div>` standing in for one should not be exempt
-   either. This changes only the cursor; it is not a layout or paint property,
-   so it costs nothing to render and cannot shift anything.
-
-   Disabled controls are excluded, because a pointer over a control that
-   cannot be activated is a worse lie than the default arrow. */
 button:not(:disabled),
 [role="button"]:not([aria-disabled="true"]) {
   cursor: pointer;
@@ -230,14 +94,8 @@ button:disabled,
   cursor: not-allowed;
 }
 
-/* ---------------------------------------------------------------------------
-   shadcn semantic variables, pointed at the brand tokens above.
-   This is what makes every shadcn component inherit Propsoch theming without
-   editing the component files.
---------------------------------------------------------------------------- */
-
 :root {
-  --radius: 0.75rem; /* one radius everywhere: buttons, cards, inputs */
+  --radius: 0.75rem;
 
   --background: var(--color-surface);
   --foreground: var(--color-ink);
@@ -247,11 +105,6 @@ button:disabled,
   --popover: #ffffff;
   --popover-foreground: var(--color-ink);
 
-  /* The primary CTA: white on the deeper orange.
-     White on the BRIGHT brand orange is 2.80:1 and is the original site's bug.
-     On #C2410C it is 5.18:1, so this pair is what makes "white label, no
-     border" achievable rather than a regression. Any shadcn component using
-     `bg-primary` inherits the accessible pair automatically. */
   --primary: var(--color-brand-strong);
   --primary-foreground: #ffffff;
 
@@ -268,10 +121,8 @@ button:disabled,
   --destructive-foreground: #ffffff;
 
   --border: var(--color-line);
-  --input: var(--color-line-strong); /* real controls need the 3:1 border */
+  --input: var(--color-line-strong);
 
-  /* Focus ring uses the darkened orange so the ring itself passes contrast.
-     The original site rings in #FF6D33, which does not. */
   --ring: var(--color-brand-strong);
 
   --chart-1: var(--color-brand);
@@ -332,10 +183,7 @@ button:disabled,
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* ---------------------------------------------------------------------------
-   Base layer
---------------------------------------------------------------------------- */
-
+/* Base element defaults. Buttons get cursor:pointer, which preflight does not. */
 @layer base {
   * {
     @apply border-border;
@@ -351,21 +199,6 @@ button:disabled,
     text-rendering: optimizeLegibility;
   }
 
-  /* Headings inherit the single family and lean on weight and size instead.
-
-     The letter-spacing here is a BACKSTOP, not the real value. Optical
-     tracking has to scale with size: what looks tight at 18px looks loose at
-     60px, because the apparent gap between letters grows with the type. So the
-     @theme block above sets a --text-*--letter-spacing per step (-0.012em at
-     xl up to -0.038em at 4xl) and Tailwind emits it as part of the text-*
-     utility, which lands in @layer utilities and therefore wins over this
-     rule. This value only applies to a heading carrying no text-* class at
-     all.
-
-     Weight is 700, not 800. Plus Jakarta Sans is loaded as a VARIABLE font
-     (next/font is given no weight option, so the whole 200-800 axis arrives in the
-     one 26.6 KB file), which means 700 is a real cut and costs nothing extra.
-     At display sizes 800 reads chunky rather than confident. */
   h1,
   h2,
   h3,
@@ -379,15 +212,12 @@ button:disabled,
     @apply text-pretty;
   }
 
-  /* One focus treatment for the whole site. Never remove an outline without
-     replacing it, and ring in brand-strong so the ring passes 3:1 itself. */
   :focus-visible {
     outline: 2px solid var(--color-brand-strong);
     outline-offset: 2px;
     border-radius: calc(var(--radius) * 0.4);
   }
 
-  /* Anchored scrolling clears the sticky header instead of hiding under it. */
   :target {
     scroll-margin-top: 5rem;
   }
@@ -396,20 +226,6 @@ button:disabled,
     scroll-behavior: smooth;
   }
 }
-
-/* ---------------------------------------------------------------------------
-   Motion layer
-
-   All motion on this site is plain CSS. There is no animation library and no
-   JavaScript driving any of it, which is what keeps the timeline and the hero
-   at zero client bytes.
-
-   Two rules govern the hero, both about protecting Largest Contentful Paint:
-     1. The h1 is NEVER animated. Fading in the LCP element from opacity 0 is
-        the most common way a site accidentally wrecks its own LCP.
-     2. Everything else gets one short entrance, transform and opacity only, so
-        the compositor handles it and the main thread stays free.
---------------------------------------------------------------------------- */
 
 @keyframes propsoch-rise {
   from {
@@ -465,10 +281,6 @@ button:disabled,
   }
 }
 
-/* Phrase-by-phrase reveal for the headline's question list.
-   A short rise with a blur that resolves, which reads as the words "settling"
-   rather than merely sliding. See the LCP note in components/sections/hero.tsx
-   for why the FIRST line is excluded from this. */
 @keyframes propsoch-word-in {
   from {
     opacity: 0;
@@ -482,20 +294,6 @@ button:disabled,
   }
 }
 
-/* ---------------------------------------------------------------------------
-   The loader.
-
-   A CSS-only splash: no client component, no JavaScript, no state. It plays
-   once and removes itself with `animation-fill-mode: forwards`, ending at
-   `visibility: hidden` and `pointer-events: none` so it cannot trap a click or
-   a focus ring afterwards.
-
-   Why CSS rather than a React effect: an overlay dismissed by `useEffect` needs
-   hydration to run before it can leave, so the splash would last as long as the
-   JavaScript takes to boot, which is precisely the thing this rebuild is trying
-   to make irrelevant. A CSS animation starts at first paint and finishes on
-   time regardless of whether any JavaScript has arrived.
---------------------------------------------------------------------------- */
 @keyframes propsoch-splash-out {
   0%,
   62% {
@@ -508,16 +306,12 @@ button:disabled,
   }
 }
 
-/* The mark's ring: a sweeping arc drawn with a dash gap. */
 @keyframes propsoch-spin {
   to {
     transform: rotate(360deg);
   }
 }
 
-/* The determinate-looking bar under the mark. It is not tied to real progress,
-   and it deliberately eases to a stop rather than filling linearly, so it does
-   not imply a measurement it does not have. */
 @keyframes propsoch-loadbar {
   from {
     transform: scaleX(0);
@@ -527,10 +321,6 @@ button:disabled,
   }
 }
 
-/* An underline that draws itself under the headline's accent phrase.
-   This is how the hero gets a piece of motion ON the headline without
-   animating the headline. The TEXT paints at full opacity in frame one and is
-   never touched; only this decorative bar animates, so LCP is unaffected. */
 @keyframes propsoch-underline {
   from {
     transform: scaleX(0);
@@ -540,8 +330,6 @@ button:disabled,
   }
 }
 
-/* Background wash drift. Moves a large blurred blob a few percent, which reads
-   as ambient depth rather than as an animation. */
 @keyframes propsoch-drift {
   0%,
   100% {
@@ -552,30 +340,8 @@ button:disabled,
   }
 }
 
-/* The route scene's continuous motion is the little car completing its route.
-   It moves with a motion path, not left/top, so it stays on the road by
-   construction. The pause at the door makes the loop read as a finished
-   guided search rather than as a conveyor belt.
-
-   THE CYCLE IS 11.6s, NOT 11s.
-
-   It used to be a flat 11s and the arrival hold was 78%..96%, 1.98s. The hold
-   is now 2.58s, +0.6s, because at 1.98s the car barely settled before it was
-   fading again. Every keyframe BEFORE the arrival keeps the exact same
-   ABSOLUTE timing it always had (2145ms, 4125ms, 5940ms, 8580ms), so the
-   drive itself is not slower, only the stop at the end is longer. Only the
-   percentages moved, to make room for the extra time inside a still-100%
-   timeline.
-
-   EVERY DISTANCE STOP HERE IS ALSO A CHECKPOINT TIME.
-
-   The four percentages below are not eased-through midpoints, they are exact
-   keyframe boundaries: 22% of the road at 18.49% of the cycle, 46% at 35.56%,
-   68% at 51.21%, and the door at 73.97%. components/brand/route-progress.tsx
-   holds the same numbers (as fractions of its own CYCLE_MS) and marks each
-   checkpoint as the car crosses it, so putting them on boundaries means the
-   tick lands on the car's wheels no matter what easing runs between them.
-   Change one here, change both there: this file and that component's MARKS. */
+/* Hero route scene. Percentages here are also checkpoint times in
+   components/brand/route-progress.tsx: change one, change the other. */
 @keyframes propsoch-route-drive {
   0% {
     offset-distance: 0%;
@@ -595,19 +361,12 @@ button:disabled,
     offset-distance: 46%;
     animation-timing-function: linear;
   }
-  /* Arrive at the Propsoch mark. 51.21% of 11.6s is 5940ms, which is the
-     same absolute moment the car reached this point before the stop existed,
-     so nothing about the drive up to here changed. */
+
   51.21% {
     offset-distance: 68%;
     animation-timing-function: linear;
   }
-  /* Stop and think for exactly 600ms (5.17% of 11.6s), then continue. The
-     easing sits HERE rather than on the keyframe above, because a
-     timing-function describes the segment that FOLLOWS its keyframe: on
-     51.21% it was easing the flat hold, where interpolating between two
-     identical values does nothing, and the actual climb to the house was
-     silently falling back to the animation's own `linear`. */
+
   56.38% {
     offset-distance: 68%;
     animation-timing-function: cubic-bezier(0.37, 0, 0.4, 1);
@@ -626,8 +385,6 @@ button:disabled,
   }
 }
 
-/* The car stops its wheels during the logo hold, then spins again on the way
-   to the house. */
 @keyframes propsoch-route-wheel {
   0% {
     transform: rotate(0deg);
@@ -642,17 +399,6 @@ button:disabled,
   }
 }
 
-/* The thinking bubble uses only the 600ms hold at the Propsoch mark, never the
-   house arrival.
-
-   THE POP NEEDS TIME TO BE A POP.
-
-   The window is 51.21% to 56.38%, which is 600ms, and the first version
-   turned it on at 51.21% having been off at 51.2%. That is 0.01% of 11.6s,
-   which is 1.16 milliseconds: a hard cut, and the scale and translate in
-   these keyframes were being computed and then never seen. It now spends
-   ~120ms arriving and ~120ms leaving, with ~360ms held in between, which is
-   the whole 600ms budget used rather than one frame of it. */
 @keyframes propsoch-route-thinking {
   0%,
   51.21% {
@@ -674,36 +420,6 @@ button:disabled,
   }
 }
 
-/* ---------------------------------------------------------------------------
-   The house opens when the car leaves the Propsoch mark.
-
-   56.38% is the exact percentage the car's own `propsoch-route-drive` uses for
-   the end of its 600ms stop at the pit stop, so the lock turns on the frame
-   the car pulls away and not a moment either side of it. That is the whole
-   claim the scene is making: the advice is what opened the door, so the door
-   opens when the advice is finished, not when the car finally rolls up to it.
-
-   The two halves are separate keyframes rather than one, because they are on
-   different elements and the lock has a pop the lights do not: the padlock
-   swells slightly before it goes, the way something does when it gives.
-
-   RE-ARM ORDER MATTERS, AND IT WAS WRONG.
-
-   Both used to re-arm at 98%, and RouteProgress clears the checkpoint ticks
-   at 96.68%. That is 1.32% of 11.6s, about 150ms, in which the ticks had all
-   gone back to pending but the house was still lit and unlocked. The loop
-   therefore appeared to begin with an OPEN house that then slammed shut a
-   moment later, which is exactly backwards from the story: the house is what
-   the journey earns, so a lap has to start with it shut.
-
-   They now finish re-locking at 96.3%, just before the tick reset at 96.68%
-   and just as the car begins its fade at 96.21%. The order a viewer sees is
-   house shuts, car fades, ticks clear, new lap.
-
-   Opacity and transform only, so both stay on the compositor. They are in the
-   data-paused rule below with everything else, so an off screen hero costs
-   nothing.
---------------------------------------------------------------------------- */
 @keyframes propsoch-home-unlock {
   0%,
   56.38% {
@@ -725,7 +441,7 @@ button:disabled,
     opacity: 1;
     transform: scale(1);
   }
-  /* The give. */
+
   57.7% {
     opacity: 1;
     transform: scale(1.22);
@@ -742,11 +458,6 @@ button:disabled,
   }
 }
 
-/* The three dots inside it, pulsing in sequence. Same "someone is composing a
-   reply" motif as the three dots in the FAQ card's question bubble
-   (components/sections/faq.tsx), reused rather than a new one invented for
-   this one spot. animation-delay staggers the three; the keyframe itself is
-   shared. */
 @keyframes propsoch-thinking-dot {
   0%,
   100% {
@@ -759,7 +470,6 @@ button:disabled,
   }
 }
 
-/* One time hero entrance. Staggered by inline --delay on the element. */
 .animate-rise {
   animation: propsoch-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
   animation-delay: var(--delay, 0ms);
@@ -778,14 +488,7 @@ button:disabled,
   mask-image: radial-gradient(ellipse at center, black 0%, transparent 72%);
 }
 
-/* ---------------------------------------------------------------------------
-   Hero: guided route to the right home.
-
-   This gives the hero a recognisable real-estate story: listings and city
-   blocks sit around a route, a car progresses along it, and a home pin marks
-   the end. Everything is vector/CSS, so it is visually rich without becoming
-   an image-heavy hero.
---------------------------------------------------------------------------- */
+/* Hero ground and layout. */
 .hero-home {
   background:
     radial-gradient(circle at 81% 31%, rgb(255 191 165 / 0.3), transparent 31rem),
@@ -809,24 +512,6 @@ button:disabled,
   text-wrap: balance;
 }
 
-/* inline-GRID, and the grid half of that is not optional.
- *
- * This rule used to say inline-block, and it silently defeated the typewriter.
- * `.type-line` sets `display: grid` so the three phrases can share
- * `grid-area: 1 / 1` and stack on top of each other; this selector is one class
- * more specific, so inline-block won, the phrases became three ordinary
- * inline-blocks, and the headline grew to three lines with two invisible ones
- * holding the space. The animation looked like it typed in the wrong place
- * because it was typing in the RIGHT place on a line that should not have
- * existed.
- *
- * inline rather than block because the ::after underline below hugs this box,
- * and a block-level grid would stretch it to the full column instead of the
- * width of the widest phrase.
- *
- * Overlapping at 1 / 1 also means the box is sized to the WIDEST phrase from
- * first layout, so swapping phrases never reflows anything. That was always the
- * point of using grid here. */
 .hero-home-heading .type-line {
   display: inline-grid;
   justify-items: start;
@@ -866,40 +551,16 @@ button:disabled,
   position: relative;
 }
 
-/* ---------------------------------------------------------------------------
-   The route scene.
-
-   THE FRAME IS GONE ON PURPOSE.
-
-   This used to be a white card: `.hero-route-stage::before` painted a panel
-   with a border and an inset highlight, `.hero-route-stage-orbit` put a dashed
-   ring around it, a third div added an inner white ring, and
-   `.hero-route-shell` tilted the whole thing on hover. Four pieces of
-   furniture around a drawing, and their combined effect was to announce that
-   the illustration was a separate object sitting beside the hero.
-
-   What is left is the drawing, a single soft glow, and a mask. The mask does
-   the blending: the artwork fades to nothing across its left third, so it
-   passes under the headline as background wash rather than ending at an edge.
---------------------------------------------------------------------------- */
+/* The route artwork: masked into the background rather than framed as a card. */
 .hero-route-stage {
   position: relative;
 }
 
-/* The bleed. The stage cell reserves the layout; this escapes it.
-   Left and vertical only. Bleeding right would push the detail cards past the
-   section's overflow clip on a 1440 screen, which is a strange bug to chase
-   later, so the right edge stays where the grid put it. */
 .hero-route-bleed {
   position: absolute;
   inset: -9% -1% -7% -27%;
 }
 
-/* Between lg and xl the grid gives the copy column much less room, and a 27%
-   bleed put the road straight through the CTA row rather than behind it. The
-   bleed is a percentage of the CELL, and the cell does not shrink as fast as
-   the space beside it does, so the number has to change with the breakpoint
-   rather than be trusted to scale. */
 @media (min-width: 1024px) and (max-width: 1279px) {
   .hero-route-bleed {
     inset: -7% -1% -6% -11%;
@@ -910,7 +571,7 @@ button:disabled,
   position: absolute;
   inset: 0;
   filter: drop-shadow(0 18px 26px rgb(33 33 48 / 0.07));
-  /* 96deg rather than 90 so the fade runs slightly uphill, with the road. */
+
   mask-image: linear-gradient(
     96deg,
     transparent 0%,
@@ -930,27 +591,7 @@ button:disabled,
   vector-effect: non-scaling-stroke;
 }
 
-/* ---------------------------------------------------------------------------
-   The road is the Bromatker ribbon.
-
-   The hero used to run a full-bleed scrolling "Bromatker" marquee under the
-   headline. It was removed because three things were competing to be read
-   first, and the campaign's entire joke went with it. It is back here as lane
-   lettering, riding a textPath along the exact curve the road is stroked from,
-   where it is texture rather than a fourth thing to read. It does not move, so
-   it costs nothing per frame; the car supplies the motion.
-
-   THE HIGHLIGHTER IS A STROKE, NOT A BOX.
-
-   The wordmark sets "mat" as a raised annotation on a yellow highlighter, the
-   way you would scribble an insertion onto a printed page. There is no way to
-   put a rect behind a tspan on a curve, so `paint-order: stroke` does it
-   instead: the yellow is painted as a fat round stroke UNDER the dark fill,
-   which reads as a highlighter smear rather than as an outline. Same two
-   colours as components/brand/bromatker.tsx, same inverted roles, same reason:
-   yellow as text on orange is 1.95:1 and unusable, yellow behind near-black is
-   12.87:1.
---------------------------------------------------------------------------- */
+/* The Bromatker wordmark set along the road as lane lettering. */
 .hero-route-wordmark {
   font-family: var(--font-sans);
   font-size: 13.5px;
@@ -962,22 +603,6 @@ button:disabled,
   white-space: pre;
 }
 
-/* The highlighter is deliberately restrained. A fatter stroke turned each
-   "mat" into a yellow lozenge with something illegible inside it, and eight of
-   those along a curve read as damage rather than as annotation. Wide enough to
-   look drawn on, tight enough that the letters still win. */
-/* THE HIGHLIGHTER WAS EATING THE WORD.
- *
- * At 4.5px the stroke was wider than the letterforms it was meant to sit
- * behind, so the three glyphs' halos merged into one lumpy yellow blob and
- * "mat" came out looking bigger than the "Bro" and "ker" it is supposed to be
- * a small annotation inside. 900 weight made it worse by thickening the
- * letters into the same mass.
- *
- * 3.2px is enough to read as a highlighter and not enough to swallow the
- * word, 800 keeps the letters distinct inside it, and the size gap to the
- * 13.5px around it is now carried by the type rather than fought by the
- * halo. */
 .hero-route-wordmark-mat {
   font-size: 10px;
   font-weight: 800;
@@ -989,19 +614,6 @@ button:disabled,
   paint-order: stroke;
 }
 
-/* ---------------------------------------------------------------------------
-   Checkpoints, and the one custom property that drives all of them.
-
-   `--done` is 1 once the car has been past and 0 before. Every part of a
-   checkpoint reads it, so a state change is ONE inherited value set on the
-   group rather than a rule per element per stage. The selector block below is
-   the entire state machine, and everything it drives is opacity and transform.
-
-   Default is 1, deliberately: with no JavaScript, before hydration, and under
-   reduced motion, `data-stage` is never set and the scene is the FINISHED
-   journey, every checkpoint ticked and every card filled in. That is the right
-   still image. See components/brand/route-progress.tsx.
---------------------------------------------------------------------------- */
 .hero-route-probe,
 .hero-route-step,
 .hero-route-pin {
@@ -1020,15 +632,10 @@ button:disabled,
   --done: 0;
 }
 
-/* Stage four is the house arrival. Make the final checkpoint explicit so the
-   house tick cannot remain in its stage-three waiting state. */
 .hero-route-art[data-stage="4"] .hero-route-probe[data-step="4"] {
   --done: 1;
 }
 
-/* The post the signal stands on. It dims with the rest of the marker rather
-   than staying solid, so an unreached checkpoint reads as an unlit signal on
-   its pole instead of a lit one that has lost its head. */
 .hero-route-probe-post {
   stroke: var(--color-brand-strong);
   stroke-width: 2.5;
@@ -1048,7 +655,6 @@ button:disabled,
     transform 520ms cubic-bezier(0.22, 0.61, 0.36, 1);
 }
 
-/* The "not yet" state: a hollow ring waiting to be filled. */
 .hero-route-probe-ring {
   fill: var(--color-surface-raised);
   stroke: var(--color-brand-soft);
@@ -1060,8 +666,7 @@ button:disabled,
 .hero-route-probe-fill {
   fill: var(--color-brand-strong);
   opacity: var(--done);
-  /* Overshoots slightly on arrival. A checkpoint that pops is the difference
-     between "a state changed" and "the car just got here". */
+
   transform: scale(calc(0.45 + var(--done) * 0.55));
   transform-box: fill-box;
   transform-origin: center;
@@ -1076,11 +681,6 @@ button:disabled,
   transition: opacity 220ms ease calc(var(--done) * 130ms);
 }
 
-/* ---------------------------------------------------------------------------
-   The destination house, shut and then open.
---------------------------------------------------------------------------- */
-
-/* Absorbs the road's round end cap into something intentional. */
 .hero-route-home-ground {
   fill: var(--color-ink);
   opacity: 0.07;
@@ -1103,8 +703,6 @@ button:disabled,
   stroke-linejoin: round;
 }
 
-/* Tile courses. Light rather than dark, because they are the gaps between
-   raised tiles catching the sky, not lines drawn on a flat plane. */
 .hero-route-home-tiles {
   fill: none;
   stroke: #fff;
@@ -1121,8 +719,6 @@ button:disabled,
   fill: var(--color-brand-strong);
 }
 
-/* The reveal each opening is set into. Slightly darker than the wall, which
-   is what gives a window depth rather than looking painted on. */
 .hero-route-home-frame {
   fill: var(--color-brand-soft);
   fill-opacity: 0.55;
@@ -1141,14 +737,11 @@ button:disabled,
   fill: var(--color-brand-strong);
 }
 
-/* Light spilling out of a lit window onto its sill. */
 .hero-route-home-spill {
   fill: var(--color-accent-yellow);
   opacity: 0.3;
 }
 
-/* Glass and the door leaf while the house is shut. Cool grey against a warm
-   scene, which is what makes the switch to lit read instantly. */
 .hero-route-home-dark {
   fill: var(--color-line-strong);
   opacity: 0.5;
@@ -1165,8 +758,6 @@ button:disabled,
   animation: propsoch-home-lock 11.6s linear infinite;
 }
 
-/* The plate is what makes the lock read as an object sitting ON the door
-   rather than a dark shape cut out of it. */
 .hero-route-lock-plate {
   fill: var(--color-surface-raised);
   opacity: 0.92;
@@ -1187,26 +778,11 @@ button:disabled,
   fill: var(--color-surface-raised);
 }
 
-/* ---------------------------------------------------------------------------
-   The Propsoch mark on the map.
-
-   Every rule here paints once. The pin's only animation is the settle at the
-   bottom of this block, which is transform, so none of the depth work below
-   costs anything per frame.
---------------------------------------------------------------------------- */
-
-/* Contact shadow on the tarmac. Soft and short, because the pin is standing
-   on the road rather than hovering above it. */
 .hero-route-pin-shadow {
   fill: var(--color-ink);
   opacity: 0.18;
 }
 
-/* The stroke is not decoration. #FF6D33 as a solid fill is 2.71:1 on this
-   ground, which fails the 3:1 WCAG 1.4.11 asks of a meaningful graphic, so
-   the shape is located by a --color-brand-strong ring instead. Same treatment
-   as the timeline markers, and the pair is asserted in
-   scripts/check-contrast.mjs. */
 .hero-route-pin-body {
   fill: url(#propsoch-hero-pin-fill);
   stroke: var(--color-brand-strong);
@@ -1226,21 +802,7 @@ button:disabled,
   fill: var(--color-surface-raised);
 }
 
-/* The pin is checkpoint three's landmark, so it settles onto the road as the
-   car reaches it. It never drops below 0.62 opacity: it is the biggest orange
-   shape in the composition and ghosting it for two thirds of every loop would
-   punch a hole in the layout. */
 .hero-route-pin {
-  /* IT MOVES, IT DOES NOT CHANGE COLOUR, AND BOTH OF THOSE ARE THE SECOND TRY.
-     First it faded to 0.62 opacity while it waited, and a translucent pin with
-     the road showing straight through it read as a rendering fault. Then it
-     desaturated, which fixed that and replaced it with something worse: the
-     largest shape in the composition sat as a dark grey blob for the first
-     half of every eleven second loop, and the eye went to the hole rather than
-     to the car.
-     A landmark should hold still. The checkpoint at its foot is what reports
-     the car's progress; the pin just settles onto it, which is enough of a
-     reaction and costs the composition nothing. */
   transform: translateY(calc((1 - var(--done)) * 5px))
     scale(calc(0.975 + var(--done) * 0.025));
   transform-box: fill-box;
@@ -1248,20 +810,7 @@ button:disabled,
   transition: transform 560ms cubic-bezier(0.34, 1.45, 0.64, 1);
 }
 
-/* ---------------------------------------------------------------------------
-   The numbers panel.
-
-   Propsoch's four stats used to sit as a chip grid under the hero CTA. They
-   are the same four facts either way, and stating them twice on one screen
-   would be worse than stating them once, so on desktop they live HERE, dealt
-   out one per checkpoint as the car earns them. The chip grid is still in the
-   DOM for screen readers and still renders normally below lg, where the
-   artwork is display:none. See components/sections/hero.tsx.
-
-   HTML rather than SVG, for the obvious reason: this is the only part of the
-   scene with words in it, and words want a text renderer with real kerning,
-   not a viewBox that scales them with the drawing.
---------------------------------------------------------------------------- */
+/* The stats panel, filled in one card per checkpoint as the car passes. */
 .hero-route-panel {
   position: absolute;
   right: 1.5%;
@@ -1286,9 +835,6 @@ button:disabled,
   border-bottom: 1px solid var(--color-line);
 }
 
-/* A live dot, and the one place a pulse is worth its frames: it is 6px, it is
-   opacity only, and it is what tells you the panel is filling in rather than
-   sitting still. */
 .hero-route-panel-dot {
   flex: none;
   width: 0.4rem;
@@ -1323,8 +869,6 @@ button:disabled,
     box-shadow 380ms ease;
 }
 
-/* Whichever row the car has just reached. One row picked out is what makes the
-   panel read as live rather than as a list that happens to be filling. */
 .hero-route-art[data-stage="1"] .hero-route-step[data-step="1"],
 .hero-route-art[data-stage="2"] .hero-route-step[data-step="2"],
 .hero-route-art[data-stage="3"] .hero-route-step[data-step="3"],
@@ -1343,7 +887,6 @@ button:disabled,
   border-radius: var(--radius-pill);
 }
 
-/* The filled disc, popped in behind the tick. */
 .hero-route-step-badge::after {
   position: absolute;
   z-index: 0;
@@ -1358,8 +901,6 @@ button:disabled,
     transform 440ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* A tick drawn from two borders on a rotated box, so the badge costs no icon
-   and no extra element. */
 .hero-route-step-badge::before {
   position: absolute;
   z-index: 1;
@@ -1391,13 +932,6 @@ button:disabled,
   line-height: 1.1;
 }
 
-/* WRAPS, RATHER THAN TRUNCATES.
-   This was nowrap with an ellipsis, which needs `min-width: 0` on a flex item
-   to do anything at all: without it the label simply overflowed and the panel
-   clipped it, so at 1024 the cards read "PROJECTS ACROSS BANGALO". These are
-   Propsoch's own labels and there is nothing in them to throw away, so the
-   label wraps onto a second line instead. Baseline alignment on the row keeps
-   the number level with the label's first line either way. */
 .hero-route-step-label {
   min-width: 0;
   color: var(--color-ink-muted);
@@ -1409,9 +943,6 @@ button:disabled,
   text-wrap: balance;
 }
 
-/* ---------------------------------------------------------------------------
-   The floating listings.
---------------------------------------------------------------------------- */
 .hero-route-listing {
   position: absolute;
   display: flex;
@@ -1449,9 +980,6 @@ button:disabled,
   width: 65%;
 }
 
-/* Curation, drawn instead of captioned. Two listings recede and one is picked
-   out with a tick, which is the point the removed "Curated on 20+ factors"
-   card was making, told the way a diagram should tell it. */
 .hero-route-listing--one,
 .hero-route-listing--two {
   opacity: 0.55;
@@ -1487,10 +1015,6 @@ button:disabled,
   transform: rotate(45deg);
 }
 
-/* Positions are percentages of the artwork box, which the svg fills edge to
-   edge, so they land on the same place in the drawing at every width. They sit
-   clear of the left mask: a half-faded white card floating over the headline
-   reads as a rendering artefact rather than as depth. */
 .hero-route-listing--one {
   top: 19%;
   left: 34%;
@@ -1509,22 +1033,6 @@ button:disabled,
   transform: rotate(-3deg);
 }
 
-/* ---------------------------------------------------------------------------
-   The car, driven along the road by CSS Motion Path.
-
-   offset-path takes the SAME path string the road is stroked from, handed down
-   as --road by the component, so the two cannot drift apart. offset-rotate:auto
-   turns the car to the tangent, which is what makes it bank through the bends
-   and reach the house pointing at the door.
-
-   transform-box and transform-origin are both required and both easy to miss.
-   offset-anchor defaults to transform-origin, and transform-origin defaults to
-   50% 50%, which for an svg element resolves against the VIEWBOX, not the
-   element. Left alone the browser carries the point (320, 270) along the road
-   and the car rides a few hundred units off it. Pinning the origin to 0 0 makes
-   the carried point the one the car is drawn around, which is where its wheels
-   touch the ground.
---------------------------------------------------------------------------- */
 .hero-route-car {
   offset-path: var(--road);
   offset-rotate: auto;
@@ -1532,14 +1040,11 @@ button:disabled,
   transform-box: view-box;
   transform-origin: 0 0;
   opacity: 0;
-  /* 11.6s: the +0.6s arrival hold. See the long comment on
-     @keyframes propsoch-route-drive for exactly where that time went. */
+
   animation: propsoch-route-drive 11.6s linear infinite;
   will-change: offset-distance;
 }
 
-/* Without offset-path the car would sit at the viewBox origin, in the top left
-   corner, over nothing. Better to not draw it at all. */
 @supports not (offset-path: path("M0 0")) {
   .hero-route-car {
     display: none;
@@ -1560,9 +1065,6 @@ button:disabled,
 }
 
 .hero-route-car-glass {
-  /* Near-white rather than brand-tint. Tint sits too close to the body orange
-     to read as glass at this size; at 38 units long the window is about ten
-     pixels on screen and needs the contrast to register at all. */
   fill: #fff6ef;
 }
 
@@ -1577,28 +1079,10 @@ button:disabled,
   animation: propsoch-route-wheel 11.6s linear infinite;
 }
 
-/* The hub is what makes the spin readable. A plain dark circle rotating looks
-   like a plain dark circle. */
 .hero-route-wheel-hub {
   fill: var(--color-surface);
 }
 
-/* ---------------------------------------------------------------------------
-   The "thinking" beat.
-
-   A small three dot bubble that appears over the car for exactly the arrival
-   hold and nothing more. It is a `<g>` inside .hero-route-car in the
-   component, so it inherits the car's own offset-path transform: wherever the
-   car is, the bubble is directly above it, by construction rather than by a
-   second set of coordinates kept in sync by hand.
-
-   COST: this adds three more elements to an SVG that is already animating
-   continuously, and nothing else. Every property here is opacity or
-   transform, so every frame of it is compositor only, exactly like the car
-   and the wheels. It shares the car's own animation-duration rather than
-   starting a second timer, and it is included in the data-paused rule below,
-   so it costs precisely zero when the hero is off screen.
---------------------------------------------------------------------------- */
 .hero-route-thinking {
   transform-box: fill-box;
   transform-origin: center;
@@ -1629,11 +1113,6 @@ button:disabled,
   animation-delay: 300ms;
 }
 
-/* Off screen or in a background tab, the scene stops costing anything.
-   RouteProgress sets this from an IntersectionObserver and from
-   visibilitychange and stops its own timer at the same moment, so scrolling
-   past the fold ends the hero's animation work rather than leaving it running
-   under the rest of the page. */
 .hero-route-art[data-paused] .hero-route-car,
 .hero-route-art[data-paused] .hero-route-wheel,
 .hero-route-art[data-paused] .hero-route-thinking,
@@ -1653,9 +1132,7 @@ button:disabled,
   position: relative;
   min-height: 7.15rem;
   overflow: hidden;
-  /* The raised surface, held at 88% so the hero's warm wash still reads
-     through it. That is what keeps the chips sitting IN the gradient rather
-     than as four opaque rectangles laid on top of it. */
+
   background: color-mix(in oklch, var(--color-surface-raised) 88%, transparent);
   box-shadow: var(--shadow-sm);
 }
@@ -1671,22 +1148,17 @@ button:disabled,
   max-width: 8.5rem;
 }
 
-/* The headline's accent underline. Starts after the entrance has settled so it
-   reads as a flourish rather than as part of the load. */
 .animate-underline {
   transform-origin: left center;
   animation: propsoch-underline 620ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
   animation-delay: 520ms;
 }
 
-/* Headline phrases, revealed one after another. */
 .animate-word {
   display: inline-block;
   animation: propsoch-word-in 520ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
   animation-delay: var(--delay, 0ms);
 }
-
-/* --- Loader ------------------------------------------------------------- */
 
 .splash {
   animation: propsoch-splash-out 1150ms ease-in-out 220ms forwards;
@@ -1701,12 +1173,6 @@ button:disabled,
   animation: propsoch-loadbar 1100ms cubic-bezier(0.16, 0.84, 0.3, 1) both;
 }
 
-/* Lift on hover for the primary action and the stat cards. A transition rather
-   than a keyframe, so it only costs anything while the pointer is over it.
-
-   -1px, not -2px. The larger value read as the button jumping rather than
-   lifting, especially stacked on top of the CTA's own hover shadow growing at
-   the same time. A hint of motion is the point, not a hop. */
 .lift {
   transition:
     transform 180ms cubic-bezier(0.22, 0.61, 0.36, 1),
@@ -1718,88 +1184,13 @@ button:disabled,
   transform: translateY(-1px);
 }
 
-/* ---------------------------------------------------------------------------
-   The headline typewriter.
-
-   Three phrases type in, hold, delete, and hand over to the next, forever.
-   Zero JavaScript, zero layout shift, and it never touches the LCP element.
-
-   HOW THE REVEAL WORKS, AND WHY IT IS NOT A WIDTH ANIMATION
-
-   The classic CSS typewriter animates width from 0 with steps(). That has two
-   problems here. It changes the element's LAYOUT on every frame, which is both
-   a compositor-unfriendly animation and a real risk to CLS; and an inline-block
-   whose width is animated cannot be sized by its own content, so it needs a
-   duplicate hidden copy of every string to measure against.
-
-   This masks instead. The text keeps its full layout box at all times and a
-   linear-gradient mask sweeps across it, so nothing reflows, nothing shifts,
-   and the animation runs entirely on the compositor.
-
-   WHY --p IS A REGISTERED PROPERTY
-
-   A plain custom property is an untyped token and cannot be interpolated: it
-   would jump from 0% to 100% with nothing in between. @property gives it the
-   <percentage> type, which is what makes it animatable, and inherits:true lets
-   the animation run on the ITEM while both the mask and the caret, which are
-   different descendants, read the same live value. That is what keeps the caret
-   welded to the reveal edge rather than approximately near it.
-
-   The initial value is 100%, deliberately: with no animation running, the text
-   is fully visible. Anything that switches the animation off, a reduced-motion
-   preference or a browser without @property, lands on readable text rather than
-   on an invisible headline.
-
-   HOW THE THREE PHRASES SHARE ONE LINE
-
-   They are grid items in the SAME cell (grid-area: 1 / 1), so the grid track
-   sizes itself to the widest phrase and the tallest line box once, at layout.
-   The box is therefore reserved before any animation runs and does not change
-   as the phrases swap, which is where the zero CLS comes from. No absolute
-   positioning and no duplicate sizer string.
-
-   Each item runs the same 9.6s keyframe offset by a third, so exactly one is
-   on screen at a time.
---------------------------------------------------------------------------- */
-
-/* The typewriter's progress, 0% to 100%.
- *
- * inherits: true, AND I TRIED THE OTHER WAY AND MEASURED IT
- *
- * An animated INHERITED custom property invalidates style on the element and
- * every descendant, every frame. That is a real cost and Lighthouse names these
- * three elements under "non-composited animations", so the obvious optimisation
- * is inherits: false with the animation moved onto the two leaves that consume
- * it, where there is no subtree to invalidate.
- *
- * I built that and measured it, three Lighthouse runs each way against a
- * production build in a clean Chrome:
- *
- *              performance         LCP              Style & Layout
- *   inherit    91 / 85 / 83     2.07 / 3.19 / 3.41s   1227 / 1858 / 968ms
- *   leaves     82 / 79 / 83     3.40 / 3.37 / 3.50s   1311 / 1539 / 1316ms
- *
- * Style recalculation did not improve, and nothing else did either. Splitting
- * one animation across six leaf elements means six animation targets instead of
- * three, and running them costs more than the narrower invalidation saves.
- *
- * Read that table honestly: the run-to-run spread on a single build (91 to 83)
- * is wider than the gap between the two builds, so this is not a clean result.
- * What it does support is that the split is not an improvement, which is enough
- * reason not to carry the extra complexity.
- *
- * Keeping the reverted code documented rather than deleted, because "animated
- * inherited custom properties are expensive" is true in general and is the kind
- * of thing I would otherwise try again in six months.
- *
- * initial-value: 100% means an un-animated .type-text is simply fully visible
- * text, which is what reduced-motion and no-JS both want. */
 @property --p {
   syntax: "<percentage>";
   inherits: true;
   initial-value: 100%;
 }
 
+/* Headline typewriter. The reveal is a mask; JS steps it, see typewriter.tsx. */
 .type-line {
   display: grid;
   justify-items: start;
@@ -1821,28 +1212,6 @@ button:disabled,
   mask-image: linear-gradient(90deg, #000 0 var(--p), transparent var(--p));
 }
 
-/* The caret.
-
-   FIRST ATTEMPT, AND WHY IT WAS WRONG
-
-   The obvious version is a thin absolutely positioned bar at left: var(--p),
-   which does track the mask edge exactly. It also registered five layout shifts
-   per cycle, for a CLS of 0.00013. Tiny, but real, and it should not be there:
-   left is a LAYOUT property, and an absolutely positioned element changing
-   its start position between frames is the definition of a layout shift. Chrome
-   does not care that the element is decorative or three pixels wide.
-
-   THE FIX
-
-   This element's geometry never changes. It spans the full text width for the
-   whole animation, and the caret itself is a background image whose POSITION
-   moves. Background position is a paint-only property: no layout, no shift, and
-   it composites like a transform would.
-
-   background-position-x with a percentage aligns that percentage of the image
-   with the same percentage of the box, so at 100% the bar sits flush against
-   the last glyph instead of hanging a caret's width past it, which is what you
-   actually want at the end of a word. */
 .type-caret {
   position: absolute;
   top: 0.1em;
@@ -1859,11 +1228,6 @@ button:disabled,
   background-position-x: var(--p);
   background-position-y: 0;
 }
-
-
-/* ---------------------------------------------------------------------------
-   Video testimonials.
---------------------------------------------------------------------------- */
 
 .testimonials-section {
   position: relative;
@@ -1891,15 +1255,6 @@ button:disabled,
   max-width: 52rem;
 }
 
-/* Measure only. The type itself is left alone on purpose.
- *
- * This used to also set `font-size: clamp(2.35rem, 4.8vw, 4.25rem)` with its
- * own line-height and tracking, which rendered at 68px against the 44px every
- * other section heading resolves to from `text-3xl`. Eight sections, seven at
- * one size and one half again as big, is the kind of difference you feel as
- * "something is off" before you can name it. The scale is defined once in the
- * @theme block and SectionHeading applies it; a section that wants to shout
- * should earn it some way other than opting out of the type scale. */
 .testimonials-heading h2 {
   max-width: 48rem;
 }
@@ -1908,6 +1263,7 @@ button:disabled,
   align-items: stretch;
 }
 
+/* Video testimonials. */
 .testimonial-card {
   position: relative;
   min-width: 0;
@@ -1980,11 +1336,6 @@ button:disabled,
   content: "";
 }
 
-/* The showcase deliberately breaks out of the reading column. The heading and
-   copy remain easy to scan, while the video gets the theatrical space it needs
-   to feel like a real person telling a story rather than another card in a
-   product grid. Only transform and opacity animate when someone changes the
-   story, so this remains a compositor-only interaction. */
 .testimonial-showcase {
   position: relative;
   width: 100vw;
@@ -2117,16 +1468,6 @@ button:disabled,
   gap: 0.5rem;
 }
 
-/* The BUTTON is the target, the ::before is the dot.
- *
- * These used to be 8px squares, which is a WCAG 2.5.8 failure (24px minimum)
- * and miserable to hit with a thumb. Growing the visible dot to 24px would have
- * turned a row of subtle markers into a row of buttons, so the button carries
- * the 24px target and the dot inside it stays 8px.
- *
- * Found by an audit that had been passing, for the same reason as the slider
- * above it: content-visibility meant this section was never laid out during a
- * scan, so the check was skipped rather than passed. */
 .testimonial-dot {
   display: grid;
   place-items: center;
@@ -2243,41 +1584,6 @@ button:disabled,
   }
 }
 
-/* The play badge's hover scale used to live here, and it was BROKEN the whole
-   time, which is worth leaving a note about rather than quietly deleting.
-
-   Tailwind's named group syntax is written group/play in JSX, and a slash is
-   not a legal character in a CSS identifier, so Tailwind emits the selector
-   with a backslash escape in front of the slash. Hand-writing the same rule in
-   plain CSS meant hand-writing that escape, the backslash was lost in transit,
-   and the file ended up with an unescaped slash, which is a parse error.
-
-   Turbopack's production build dropped the invalid rules silently and kept
-   going, so the build passed, the page looked fine, and the hover simply never
-   happened. The dev server is stricter and refused to compile, which is the
-   only reason it surfaced at all.
-
-   The fix is not to write the escape more carefully. It is to stop
-   hand-writing a selector the framework already generates correctly: the badge
-   now uses group-hover/play: and group-active/play: utilities in the JSX,
-   exactly like the poster zoom next to it always did. Reduced motion is
-   handled there too, with the motion-reduce: variant.
-
-   Best practice: if a class name contains characters CSS has to escape, target
-   it from the framework that owns it, never from a stylesheet by hand. */
-
-/* ---------------------------------------------------------------------------
-   The FAQ accordion.
-
-   Height cannot be animated to or from auto, which is why accordions either
-   jump open or ship a JavaScript measuring loop. Radix measures the panel for
-   us and exposes it as --radix-accordion-content-height, so the animation is
-   plain CSS between two known heights.
-
-   Opening is slower than closing on purpose: revealing text should feel like it
-   is arriving, closing should feel like getting out of the way.
---------------------------------------------------------------------------- */
-
 @keyframes propsoch-accordion-open {
   from {
     height: 0;
@@ -2308,7 +1614,6 @@ button:disabled,
   animation: propsoch-accordion-close 180ms cubic-bezier(0.4, 0, 1, 1);
 }
 
-/* The dialog overlay's entrance. Opacity only, so it composites. */
 @keyframes propsoch-fade-in {
   from {
     opacity: 0;
@@ -2329,23 +1634,10 @@ button:disabled,
   }
 }
 
-/* Which phrase is on stage.
- *
- * This used to be part of the same keyframes that drove the reveal, so a single
- * infinite animation carried both the opacity phase and `--p`. Opacity is
- * composited and free; `--p` is not, and it forced a full style resolution
- * every frame for the life of the page. See components/sections/typewriter.tsx
- * for the traced numbers.
- *
- * Splitting them means the phase is a plain attribute switch and the reveal is
- * stepped from JavaScript. Before hydration, with JavaScript off, or under
- * reduced motion, `[data-active]` is never set, the first phrase is visible,
- * and `--p` sits at its 100% initial value: a readable static headline. */
 .type-item {
   opacity: 0;
 }
 
-/* Phrase one until JavaScript says otherwise, then whichever is on stage. */
 .type-line:not([data-active]) .type-item[data-i="0"],
 .type-line[data-active="0"] .type-item[data-i="0"],
 .type-line[data-active="1"] .type-item[data-i="1"],
@@ -2369,11 +1661,6 @@ button:disabled,
     transform: none;
   }
 
-  /* With no animation to open it, the house is shown OPEN rather than shut.
-     The still image of this scene is the finished journey everywhere else in
-     it (every checkpoint ticked, every card filled), and a padlock is the one
-     element that would contradict that: a completed route ending at a locked
-     door reads as a failure, not as stillness. */
   .hero-route-home-lit {
     opacity: 1;
   }
@@ -2382,31 +1669,15 @@ button:disabled,
     display: none;
   }
 
-  /* Parked, not deleted. The car's resting state is opacity 0 because its
-     animation fades it in, so stopping the animation would remove it from a
-     scene that is partly about a journey. It sits on the road at a point where
-     the curve reads, and offset-path still places it there with no animation
-     running. */
   .hero-route-car {
     offset-distance: 58%;
     opacity: 1;
   }
 
-  /* The car is parked mid-route rather than at the door, so the thinking
-     bubble has nothing to attach to. Its own opacity keyframe would already
-     resolve to 0 with the animation stopped, since 0% is its first frame, but
-     stated outright rather than relied on: a bubble floating over a car parked
-     in the middle of a road with no animation running to explain it would be a
-     stray shape, not a still image that reads. */
   .hero-route-thinking {
     opacity: 0;
   }
 
-  /* The typewriter stops entirely rather than being duration-collapsed. The
-     blanket rule elsewhere lands one-shot animations on their final keyframe,
-     and this animation's final keyframe is opacity 0, which would hide the
-     headline's tail outright. Explicit beats clever. --p stays at its 100%
-     initial value, so phrase one is simply readable text. */
   .type-item {
     opacity: 0 !important;
   }
@@ -2419,49 +1690,19 @@ button:disabled,
     display: none;
   }
 
-  /* The accordion opens and closes instantly rather than being collapsed to
-     0.01ms by the blanket rule, which would land it on a final keyframe of
-     height 0 for the closing case and is fine, but leaves the OPENING case
-     animating a height for a hundredth of a second for no reason. */
   .faq-panel[data-state="open"],
   .faq-panel[data-state="closed"] {
     animation: none !important;
   }
-
 }
 
-/* ---------------------------------------------------------------------------
-   Lazy rendering for below-the-fold sections.
-
-   There are no images on this page, so `loading="lazy"` has nothing to do. The
-   equivalent win for a text and SVG page is `content-visibility: auto`, which
-   lets the browser SKIP layout, style and paint for a section until it is near
-   the viewport. On a page with a nine row table, a five step timeline and two
-   interactive panels, that is real rendering work moved off the first frame.
-
-   `contain-intrinsic-size` is not optional here. Without it a skipped section
-   reports zero height, the scrollbar jumps as you scroll into it, and anchor
-   links land in the wrong place. The value is a rough estimate of each
-   section's real height; being approximate is fine, being absent is not.
-
-   Deliberately NOT applied to the hero: it is above the fold and contains the
-   LCP element, so skipping its render would be actively harmful.
---------------------------------------------------------------------------- */
+/* content-visibility so below-the-fold sections are not laid out until needed. */
 .lazy-section {
   content-visibility: auto;
   contain-intrinsic-size: auto 900px;
 }
 
-/* ---------------------------------------------------------------------------
-   Timeline, scroll driven and JavaScript free.
-
-   The progress line and the step markers advance with scroll position using
-   CSS scroll-driven animations. The @supports guard matters more than the
-   animation: where scroll-driven animations are unavailable, the line is
-   already drawn in full and every marker is already active, so nothing is
-   hidden and nothing looks broken. The motion is purely additive.
---------------------------------------------------------------------------- */
-
+/* Scroll-driven timeline. Without support the line is simply drawn in full. */
 .timeline {
   view-timeline-name: --timeline;
   view-timeline-axis: block;
@@ -2469,11 +1710,11 @@ button:disabled,
 
 .timeline-progress {
   transform-origin: top center;
-  transform: scaleY(1); /* default and fallback: fully drawn */
+  transform: scaleY(1);
 }
 
 .timeline-marker {
-  opacity: 1; /* default and fallback: fully active */
+  opacity: 1;
 }
 
 @supports (animation-timeline: view()) {
@@ -2492,14 +1733,6 @@ button:disabled,
   }
 }
 
-/* ---------------------------------------------------------------------------
-   The advisors grid.
-
-   One hairline separator, and it is the parent's background rather than a
-   border on each card. `gap: 1px` over a --color-line ground lets the ground
-   show through, which gives a single continuous rule at every join instead of
-   the doubled 2px line you get from bordering four children that touch.
---------------------------------------------------------------------------- */
 .advisor-dot {
   display: inline-block;
   width: 3px;
@@ -2509,23 +1742,12 @@ button:disabled,
   opacity: 0.55;
 }
 
-/* ---------------------------------------------------------------------------
-   The floor plan reader.
-
-   Interactive, and it ships no JavaScript. Five radio inputs sit at the top of
-   the fieldset; everything below reacts through the `~` sibling combinator.
-   See components/sections/floor-plan.tsx for why it is `~` and not `:has()`.
-
-   Every state change below is `opacity`, `background-color` or `display` on
-   elements that are already laid out, so choosing a different check never
-   moves anything on the page.
---------------------------------------------------------------------------- */
+/* Floor plan reader. Radio inputs drive the highlights through sibling selectors,
+   so the ids below must match FLOOR_PLAN_CHECKS. */
 .plan-reader {
   position: relative;
   display: grid;
-  /* A fieldset defaults to `min-inline-size: min-content`, which quietly
-     refuses to shrink and blows the grid out on narrow screens. This is the
-     one line that makes a fieldset behave like a div. */
+
   min-inline-size: 0;
   gap: 1.5rem;
   margin: 0;
@@ -2541,10 +1763,6 @@ button:disabled,
   }
 }
 
-/* Visually hidden, but still focusable and still a real radio group, so arrow
-   keys move between the five checks exactly as they should. Not `display:
-   none`, which would take them out of the tab order and out of the
-   accessibility tree with it. */
 .plan-radio {
   position: absolute;
   width: 1px;
@@ -2577,8 +1795,6 @@ button:disabled,
   font-size: var(--text-xs);
 }
 
-/* --- the drawing itself ------------------------------------------------- */
-
 .plan-wall-outer path {
   stroke: var(--color-ink);
   stroke-width: 6;
@@ -2592,8 +1808,6 @@ button:disabled,
   stroke-linecap: square;
 }
 
-/* The white break is what turns a line into a hole. Painted over the wall,
-   then the thin pane line is drawn back on top of it. */
 .plan-window-break path {
   stroke: #fff;
   stroke-width: 9;
@@ -2624,8 +1838,6 @@ button:disabled,
   font-size: 12.5px;
   font-weight: 500;
 }
-
-/* --- the five zones ----------------------------------------------------- */
 
 .plan-zone,
 .plan-zone-under {
@@ -2691,13 +1903,6 @@ button:disabled,
   fill: var(--color-brand-strong);
 }
 
-/* --- the list ----------------------------------------------------------- */
-
-/* The min-height is a CLS fix, not a look.
-   Exactly one description is open at any time, so the list's height varies
-   only by the difference between the longest and shortest of them. Reserving
-   the tallest means switching checks never nudges the footer, and it costs
-   nothing visually because the list is the shorter column anyway. */
 .plan-list {
   display: grid;
   align-content: start;
@@ -2728,8 +1933,7 @@ button:disabled,
 
 .plan-row {
   display: flex;
-  /* 44px, the same touch target every other control on this page clears. The
-     row is the whole hit area rather than just the words. */
+
   min-height: 44px;
   align-items: center;
   gap: 0.75rem;
@@ -2753,8 +1957,6 @@ button:disabled,
     transform 240ms cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Collapsed descriptions are `display: none`, not clipped. A screen reader
-   should not read out the answer to a question the user has not opened. */
 .plan-desc {
   display: none;
   margin: 0;
@@ -2764,10 +1966,6 @@ button:disabled,
   line-height: 1.65;
 }
 
-/* The state machine, written out. Five checks, three things each: the row
-   lights up, its marker fills, its description opens. Explicit beats a
-   `:has()` one-liner here, because these selectors are also the documentation
-   of which id drives which zone. */
 #plan-ventilation:checked ~ .plan-list [data-focus="ventilation"],
 #plan-circulation:checked ~ .plan-list [data-focus="circulation"],
 #plan-doors:checked ~ .plan-list [data-focus="doors"],
@@ -2804,9 +2002,6 @@ button:disabled,
   opacity: 1;
 }
 
-/* Keyboard focus lands on the hidden input, so the ring has to be drawn on the
-   row it controls. Without this the radio group is operable by keyboard and
-   completely invisible while you do it. */
 #plan-ventilation:focus-visible ~ .plan-list [data-focus="ventilation"],
 #plan-circulation:focus-visible ~ .plan-list [data-focus="circulation"],
 #plan-doors:focus-visible ~ .plan-list [data-focus="doors"],
@@ -2816,48 +2011,8 @@ button:disabled,
   outline-offset: 2px;
 }
 
-/* ---------------------------------------------------------------------------
-   The press band.
-
-   A warm ground and a marquee that never stops, for the cost of one composited
-   keyframe. See components/sections/featured-in.tsx for why the motion came
-   back after the flat version argued against it.
---------------------------------------------------------------------------- */
-
-/* Light on purpose. The mastheads are PNGs with an opaque white plate behind
-   the artwork and they sit on white cards using mix-blend-multiply, which only
-   erases that plate against a light ground. A dark band here would delete the
-   logos rather than tint them. */
+/* Press marquee. transform only, so it stays on the compositor. */
 .press-band {
-  /* THE COLOUR IS WEIGHTED AWAY FROM THE TEXT, AND THAT IS A CONTRAST FIX
-     RATHER THAN A COMPOSITION ONE.
-
-     The first version put the strongest orange under the left third, which is
-     where the heading is. Measured off a screenshot, that put 14px semibold
-     --color-ink-muted on roughly #F9E1D8 at 4.42:1, under the 4.5:1 that
-     normal text needs. Nothing in scripts/check-contrast.mjs could have
-     caught it either, because the gate asserts token pairs and this is a
-     gradient.
-
-     So the saturated end sits on the right, behind the logo cards, which
-     carry no text of their own.
-
-     Capping the wash was the wrong second move and it is worth recording.
-     Lightening the whole band until --color-ink-muted cleared 4.5:1 ANYWHERE
-     on it did make the guarantee positional-independent, and it also made the
-     band pale enough that it was back to being the dull strip this change set
-     out to fix. The text moved instead: the heading is --color-ink now, which
-     is far clear of the bar on the most saturated pixel here, so the colour
-     can be worth looking at and the label is more legible than it was on the
-     flat grey. Darkening 14px of text is a cheaper concession than draining
-     a whole section.
-
-     Measured with PIL off a real screenshot rather than estimated: the
-     darkest pixel in the band is rgb(244, 217, 210). --color-ink on it is
-     11.85:1, against the 4.5:1 that 14px normal text needs, and it holds
-     wherever the heading lands, including below lg where it is centred
-     rather than left. --color-ink-muted on that same pixel is 4.13:1, which
-     is the number that failed and the reason the heading moved. */
   background:
     radial-gradient(
       75% 200% at 88% 50%,
@@ -2870,12 +2025,7 @@ button:disabled,
       transparent 72%
     ),
     linear-gradient(180deg, var(--color-surface-sunken), #fdf4ef);
-  /* .lazy-section reserves 900px for a section that measures 154px on desktop
-     and 179px stacked on a 390px screen. That over-reservation is harmless
-     once the band has been rendered, because `auto` then remembers the real
-     size, but until then it makes the scrollbar lie about the page length by
-     about 750px and collapses by that much the first time the band is
-     rendered. A real number costs nothing and removes both. */
+
   contain-intrinsic-size: auto 165px;
 }
 
@@ -2888,16 +2038,12 @@ button:disabled,
   box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-brand) 16%, transparent);
 }
 
-/* The clip. `min-width: 0` is what lets a flex child actually be narrower than
-   its contents, which is the whole point of a marquee and the single most
-   common reason one refuses to clip. */
 .press-marquee {
   display: flex;
   width: 100%;
   min-width: 0;
   overflow: hidden;
-  /* Dissolve at both edges rather than ending on a cut. Static, so it is
-     painted once and never again. */
+
   mask-image: linear-gradient(
     90deg,
     transparent 0,
@@ -2913,18 +2059,13 @@ button:disabled,
   }
 }
 
-/* Two of these sit side by side and translate together. Each moves by -100% of
-   ITS OWN width, so when the cycle restarts the second copy is exactly where
-   the first one started and the seam is invisible. `flex: 0 0 auto` matters:
-   the track has to be as wide as its contents, not as wide as the clip. */
 .press-track {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
   gap: 0.75rem;
   margin: 0;
-  /* Matches `gap`, so the space across the seam between the two copies is the
-     same as the space between any two cards. */
+
   padding: 0.25rem 0.75rem 0.25rem 0;
   list-style: none;
   animation: propsoch-press-scroll 34s linear infinite;
@@ -2938,17 +2079,12 @@ button:disabled,
   }
 }
 
-/* transform only. No width, no left, no background-position, nothing that
-   would drag this back onto the main thread. */
 @keyframes propsoch-press-scroll {
   to {
     transform: translate3d(-100%, 0, 0);
   }
 }
 
-/* WCAG 2.2.2: moving content that starts on its own needs a way to stop.
-   `:focus-within` is the important half. Without it a keyboard user tabs into
-   a link that is sliding away underneath them. */
 .press-marquee:hover .press-track,
 .press-marquee:focus-within .press-track {
   animation-play-state: paused;
@@ -2980,19 +2116,7 @@ button:disabled,
   outline-offset: 2px;
 }
 
-/* ---------------------------------------------------------------------------
-   Reduced motion, sitewide.
-
-   The blanket rule collapses durations so every one time animation lands on its
-   final state instantly. The marquee needs an explicit exception: collapsing its
-   duration would leave the track parked at its final keyframe, which reads as
-   broken layout rather than as stillness. So it is switched off outright.
-
-   That note used to be historical, describing a marquee this build had already
-   removed. The press band brought one back, so it is load-bearing again, and
-   the exception it describes is at the bottom of this block.
---------------------------------------------------------------------------- */
-
+/* Reduced motion, sitewide. Marquees are switched off, not duration-collapsed. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -3007,17 +2131,11 @@ button:disabled,
     scroll-behavior: auto;
   }
 
-  /* The ambient drift is switched off outright rather than duration-collapsed.
-     The blanket rule above would land it on its final keyframe, which happens
-     to be harmless here, but relying on "the last frame happens to be the
-     resting state" is how the marquee bug above got made. Explicit is better. */
   .animate-drift {
     animation: none !important;
     transform: none !important;
   }
 
-  /* The underline is a scaleX from 0, so collapsing its duration would land it
-     at scaleX(1), which is the state we want. Stated explicitly anyway. */
   .animate-underline {
     animation: none !important;
     transform: scaleX(1) !important;
@@ -3027,9 +2145,6 @@ button:disabled,
     transform: none !important;
   }
 
-  /* The headline reveal collapses to its final state, so the words are simply
-     there. Blur is cleared explicitly: a collapsed duration lands on the last
-     keyframe, but leaving `filter` to chance on a headline is not worth it. */
   .animate-word {
     animation: none !important;
     opacity: 1 !important;
@@ -3037,34 +2152,19 @@ button:disabled,
     filter: none !important;
   }
 
-  /* The splash is removed outright rather than animated away. Someone who has
-     asked for reduced motion should not be shown a spinner at all, let alone
-     wait out its exit. */
   .splash {
     display: none !important;
   }
 
-  /* The press marquee, and this is the exception the note at the top of this
-     block is about.
-
-     Collapsing the duration would land the track on its final keyframe,
-     translate3d(-100%, 0, 0), which parks both copies outside their own clip
-     and leaves an empty band with a heading next to it. Switched off outright
-     instead, and the transform cleared explicitly rather than trusted to the
-     collapse. */
   .press-track {
     animation: none !important;
     transform: none !important;
   }
 
-  /* The second copy only exists to make the loop seamless. With no loop it is
-     five mastheads nobody asked to see twice. */
   .press-track[aria-hidden="true"] {
     display: none !important;
   }
 
-  /* What is left has to behave like the static row this band was before the
-     marquee: one track, wrapping, centred, and no edge fade to explain. */
   .press-marquee {
     justify-content: center;
     mask-image: none;

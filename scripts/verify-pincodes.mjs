@@ -1,42 +1,14 @@
-/**
- * Verifies lib/pincodes.ts against India Post's public pincode API.
- *
- * Why this exists: a wrong pincode in the coverage map is a real bug, it tells
- * someone we serve an area we do not or turns away someone we do. Writing 85
- * pincodes from memory and hoping is not good enough, so this checks every one.
- *
- * For each entry it asserts:
- *   1. The pincode exists in India Post's database.
- *   2. Its district matches the city claimed in our data.
- *
- * It does NOT assert that our friendly area name matches India Post's post
- * office name, because those legitimately differ ("HSR Layout" versus
- * "Agara S.O."). It prints the real post office names so a human can sanity
- * check the label.
- *
- * This is a one-off data check, not part of `npm run verify`: it hits a third
- * party API over the network, so it has no business in a build pipeline. Run it
- * by hand when the coverage map changes:
- *
- *   node scripts/verify-pincodes.mjs
- */
-
+// Checks every pincode in lib/pincodes.ts against India Post's public API.
 import { readFileSync } from "node:fs";
 
 const SOURCE = "lib/pincodes.ts";
 const API = "https://api.postalpincode.in/pincode";
 
-/** Districts India Post uses for each of our cities, lowercased. */
 const DISTRICT_ALIASES = {
   Bangalore: ["bengaluru", "bangalore"],
   Mumbai: ["mumbai", "greater mumbai", "bombay", "mumbai suburban", "thane"],
 };
 
-/**
- * Parses the entries straight out of the TypeScript source, so the script can
- * never drift from the file it is checking. A regex is the right tool here: the
- * data is a flat literal with one entry per line by construction.
- */
 function readEntries() {
   const text = readFileSync(SOURCE, "utf8");
   const pattern =

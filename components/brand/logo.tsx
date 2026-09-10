@@ -1,49 +1,11 @@
-/**
- * The Propsoch logo.
- *
- * This is Propsoch's actual mark, extracted from their live site (it ships as an
- * inline SVG there, not as an asset file). The earlier version of this file was
- * an original house glyph I drew, because the brief said not to copy proprietary
- * art. That instruction was later overridden: use the real logo. So this is it.
- *
- * Two paths, exactly as the original:
- *   - the interlocking mark plus "Prop", filled #FF6D33
- *   - "soch", filled #212130
- *
- * Worth noting for the palette: the logo's own fill is `#FF6D33`. That is the
- * primary evidence that the brand orange is rgb(255, 109, 50), and it is why
- * the token is that value verbatim.
- *
- * Kept as inline SVG rather than a file in /public for three reasons: no network
- * request for something needed at first paint, it scales without a second asset,
- * and an explicit viewBox plus width and height means it reserves its own box
- * and cannot shift the header (CLS).
- *
- * The colours are hard-coded rather than tokenised on purpose. A logo is a fixed
- * asset, not a themed component. If the palette were ever retuned, the mark
- * should not silently change with it.
- */
-
+// Propsoch's real mark, inline so it needs no request at first paint. Colours are
+// hardcoded on purpose: a logo is a fixed asset, not a themed component.
 interface LogoProps {
-  /** Rendered width in pixels. Height follows the variant's aspect ratio. */
   readonly width?: number;
   readonly className?: string;
-  /**
-   * True when the logo sits inside a link or button that already has its own
-   * accessible name, in which case the SVG must not add a second one.
-   */
+
   readonly decorative?: boolean;
-  /**
-   * "full" is the mark plus the wordmark. "mark" is the glyph alone, for square
-   * contexts like the loading splash.
-   *
-   * The mark variant reuses the SAME path data and simply crops the viewBox to
-   * the glyph's square region. The letterforms are still in the path but fall
-   * outside the view box, so they are clipped. That avoids splitting the path
-   * `d` at a subpath boundary, which would break: the "Prop" subpath begins with
-   * a RELATIVE move (`m44.55 41.58`) from the end of the mark, so lifting it out
-   * on its own would place it at the wrong coordinates.
-   */
+
   readonly variant?: "full" | "mark";
 }
 

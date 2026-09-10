@@ -1,22 +1,4 @@
-/**
- * Serviceable pincodes, as a flat pincode to area map.
- *
- * Shaped for extension exactly as the brief asked: adding coverage is one new
- * line, and nothing else in the app needs to change. A flat object also gives
- * O(1) lookup and lets TypeScript keep the city names honest.
- *
- * ACCURACY
- * A wrong pincode here is a real bug, not a cosmetic one: it tells someone we
- * cover an area we do not, or turns away someone we do. So every entry below was
- * verified against India Post's public pincode API rather than written from
- * memory. See scripts/verify-pincodes.mjs, which checks that each key exists and
- * that its district actually matches the city claimed here.
- *
- * The `area` strings are the colloquial names buyers use ("HSR Layout",
- * "Koramangala"), not India Post's internal post office names ("Koramangala VI
- * Block S.O."), because these are shown to a person.
- */
-
+// Every pincode below is verified against India Post by scripts/verify-pincodes.mjs.
 export type ServiceCity = "Bangalore" | "Mumbai";
 
 export interface ServiceArea {
@@ -24,9 +6,7 @@ export interface ServiceArea {
   readonly city: ServiceCity;
 }
 
-/** pincode -> area. Add a line to extend coverage. */
 export const SERVICE_PINCODES: Readonly<Record<string, ServiceArea>> = {
-  // ---------------------------------------------------------------- Bangalore
   "560001": { area: "MG Road", city: "Bangalore" },
   "560002": { area: "Chickpet", city: "Bangalore" },
   "560003": { area: "Malleshwaram", city: "Bangalore" },
@@ -67,8 +47,6 @@ export const SERVICE_PINCODES: Readonly<Record<string, ServiceArea>> = {
   "560100": { area: "Electronic City", city: "Bangalore" },
   "560102": { area: "HSR Layout", city: "Bangalore" },
   "560103": { area: "Bellandur", city: "Bangalore" },
-
-  // ------------------------------------------------------------------- Mumbai
   "400001": { area: "Fort", city: "Mumbai" },
   "400005": { area: "Colaba", city: "Mumbai" },
   "400006": { area: "Malabar Hill", city: "Mumbai" },
@@ -113,25 +91,14 @@ export const SERVICE_PINCODES: Readonly<Record<string, ServiceArea>> = {
   "400097": { area: "Malad East", city: "Mumbai" },
   "400101": { area: "Kandivali East", city: "Mumbai" },
   "400102": { area: "Jogeshwari West", city: "Mumbai" },
-  // Goregaon West is 400104, not 400062. 400062 does not exist in India Post's
-  // database at all, which scripts/verify-pincodes.mjs caught.
   "400104": { area: "Goregaon West", city: "Mumbai" },
 };
 
-/**
- * The result of a lookup.
- *
- * A discriminated union rather than `ServiceArea | null` so the three outcomes
- * stay distinct. "Not a valid pincode" and "a valid pincode we do not serve"
- * deserve different messages, and returning null for both would collapse them
- * and let the UI show "we are not there yet" for a typo.
- */
 export type PincodeResult =
   | { status: "invalid" }
   | { status: "covered"; area: ServiceArea }
   | { status: "not-covered" };
 
-/** Indian pincodes are exactly six digits and never begin with zero. */
 const PINCODE_PATTERN = /^[1-9][0-9]{5}$/;
 
 export function lookupPincode(raw: string): PincodeResult {

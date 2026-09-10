@@ -1,49 +1,9 @@
-/**
- * The FAQ, lifted verbatim from Propsoch's own FAQ array.
- *
- * WHERE IT CAME FROM
- *
- * Their answers ship as HTML strings inside a JavaScript chunk, with <ol>,
- * <ul>, <li>, <strong> and <br/> in them. Rendering those with
- * dangerouslySetInnerHTML would mean trusting a scraped string to be markup
- * forever, so a one-off extractor parsed each answer into the small block shape
- * below and this file is its output. The words are untouched; only the
- * container changed, from a string of tags to real elements.
- *
- * TWO EDITS, BOTH THE SAME RULE
- *
- * Their content contains two exact duplicates, and both are dropped:
- *
- *   1. The "I am confused looking at various options" answer lists the bullet
- *      "Is this neighborhood safe?" twice in a row.
- *   2. "Why Work With Us" lists the Magicbricks/99Acres comparison question
- *      twice, at positions 1 and 3, with a byte-identical answer.
- *
- * An exact duplicate carries no information, and shipping one makes the rebuild
- * look broken rather than faithful. Nothing else is touched, including their
- * spelling of "neighborhood" here against "neighbourhood" two answers earlier.
- *
- * The second one was found by a browser console error, not by reading: React
- * warned about two children with the same key. A duplicate-key warning is
- * usually a bug in the markup; this time the markup was right and the data was
- * wrong.
- *
- * TWO WORDS THE PROJECT'S OWN RULES WOULD OTHERWISE FLAG
- *
- * One answer uses "empower", which is on this build's banned-word list, and the
- * project also bans em dashes. Both rules are about MY prose. This file is a
- * quotation of Propsoch's, and the instruction is to keep their text as it is,
- * so nothing here is reworded. The rule checker flags this file; that is the
- * checker being right about the word and wrong about whose word it is.
- *
- * 31 questions across 4 categories.
- */
-
+// All 32 questions and answers, verbatim from the live site.
 export interface FaqBlock {
   readonly kind: "p" | "list";
-  /** Set when kind is "p". */
+
   readonly text?: string;
-  /** Set when kind is "list". */
+
   readonly ordered?: boolean;
   readonly items?: readonly { readonly lead: string | null; readonly text: string }[];
 }
@@ -55,30 +15,17 @@ export interface FaqItem {
 
 export interface FaqGroup {
   readonly category: string;
-  /**
-   * The category name is the tab's LABEL. This is its VALUE.
-   *
-   * Radix builds element ids out of a tab's value, and `aria-controls` is a
-   * space-separated list of ids. A value of "About the Service" therefore
-   * produces aria-controls="...-About the Service", which a browser reads as
-   * three separate id references, none of which exist. axe flags it, and a
-   * screen reader following the relationship lands nowhere.
-   *
-   * Found by running an accessibility audit, not by reading the code.
-   */
+
   readonly slug: string;
   readonly items: readonly FaqItem[];
 }
 
 export const FAQ_SECTION = {
   eyebrow: "Questions",
-  /** Verbatim. */
   heading: "Frequently Asked Questions",
-  /** Verbatim. */
   sub: "99% of your queries should get answered here, for others, you can always talk to us",
 } as const;
 
-/** The card under the FAQ. All three strings verbatim. */
 export const FAQ_CTA = {
   heading: "Still have questions?",
   sub: "We are always here for you",
