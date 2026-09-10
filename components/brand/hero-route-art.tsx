@@ -64,21 +64,54 @@ const ROAD =
 const ROAD_ID = "propsoch-hero-road";
 
 /**
- * The three on-road checkpoints, at MEASURED points on the curve rather than at
- * coordinates that look about right: 22%, 46% and 68% along the path, computed
- * by arc length (the path is 683.9 units long). The fourth checkpoint is the
- * house at the end, which is why there are three entries here and four cards.
+ * The three roadside checkpoints.
  *
- * Checkpoint 3 doubles as the foot of the map pin, so the pin's tip lands on
- * the road instead of floating 27 units above it, which is where it was. If
- * ROAD changes, these three move with it: recompute by arc length rather than
- * nudging them until they look close.
+ * THEY STAND BESIDE THE ROAD NOW, NOT ON IT.
+ *
+ * They used to be discs centred on the centreline, which made them read as
+ * manhole covers: the car drove over the top of each one and the road's own
+ * lettering ran underneath them. A checkpoint is a thing you pass, not a thing
+ * you drive through, so each one now sits off the verge on a short post, the
+ * way a signal does.
+ *
+ * `x` and `y` are still MEASURED points on the curve rather than coordinates
+ * that look about right: 22%, 46% and 68% along a path that is 683.9 units
+ * long, found by arc length. `nx` and `ny` are the UNIT NORMAL at that point,
+ * taken from the curve's derivative there, and everything else about the
+ * marker is derived from them: the post runs along the normal, and the disc
+ * sits at the end of it. Offsetting by eye instead would have put each marker
+ * at a slightly different distance from a road whose angle changes by 55
+ * degrees across these three points.
+ *
+ * WHY THE THIRD ONE IS ON THE OTHER SIDE
+ *
+ * One and two sit above the road, which is the open side there. Three cannot:
+ * the map pin's tip lands on that exact point, and the pin's body fills the
+ * space above it, so a marker there would be behind the pin. It goes below
+ * instead, which is the clear side at that point. Signals stand wherever the
+ * verge has room, so this reads as intent rather than as an exception.
+ *
+ * If ROAD changes, all six numbers move with it: recompute the point by arc
+ * length and the normal from the derivative, rather than nudging them until
+ * they look close.
  */
 const CHECKPOINTS = [
-  { x: 171.2, y: 420 },
-  { x: 326, y: 369.7 },
-  { x: 444.2, y: 290.5 },
+  { x: 171.1, y: 420, nx: -0.436, ny: -0.9 },
+  { x: 326, y: 369.7, nx: -0.104, ny: -0.995 },
+  { x: 444.2, y: 290.5, nx: 0.878, ny: 0.478 },
 ] as const;
+
+/**
+ * How far off the centreline the disc stands, and where the post runs.
+ *
+ * The road is stroked at 38, so its edge is 19 from the centre. The disc is
+ * r=11.5 at an offset of 40, which puts its near edge at 28.5, clear of the
+ * tarmac by 9.5. The post spans 17 to 29 so it tucks under both the kerb and
+ * the disc and cannot show a gap at either end.
+ */
+const SIGNAL_OFFSET = 40;
+const POST_FROM = 17;
+const POST_TO = 29;
 
 /**
  * How many times the wordmark repeats along the road.
@@ -152,34 +185,61 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
             away until the car has been past, so the still image, the
             no-JavaScript render and the reduced-motion render are all the
             finished journey rather than an empty one. */}
-        {CHECKPOINTS.map((point, i) => (
-          <g
-            key={point.x}
-            className="hero-route-probe"
-            data-step={i + 1}
-            transform={`translate(${point.x} ${point.y})`}
-          >
-            <circle className="hero-route-probe-halo" r="17" />
-            <circle className="hero-route-probe-ring" r="11.5" />
-            <circle className="hero-route-probe-fill" r="11.5" />
-            <path
-              className="hero-route-probe-tick"
-              d="m-4.6 0.2 3.2 3.4 6-6.6"
-              fill="none"
-              strokeWidth="2.6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-        ))}
+        {CHECKPOINTS.map((point, i) => {
+          // Everything is derived from the point and its normal, so the three
+          // markers stand off the road by the same distance at three quite
+          // different road angles.
+          const post = {
+            x1: point.x + point.nx * POST_FROM,
+            y1: point.y + point.ny * POST_FROM,
+            x2: point.x + point.nx * POST_TO,
+            y2: point.y + point.ny * POST_TO,
+          };
+          const head = {
+            x: point.x + point.nx * SIGNAL_OFFSET,
+            y: point.y + point.ny * SIGNAL_OFFSET,
+          };
 
-        {/* The map pin, moved so its TIP sits on the road at checkpoint 3
-            instead of hovering 27 units beside it. The offset is (484, 271),
-            where the tip is drawn, subtracted from the checkpoint. The translate is
+          return (
+            <g key={point.x} className="hero-route-probe" data-step={i + 1}>
+              <path
+                className="hero-route-probe-post"
+                d={`M${post.x1} ${post.y1}L${post.x2} ${post.y2}`}
+              />
+              {/* The head is its own group so the tick keeps its original
+                  coordinates, drawn around 0,0, instead of every path in it
+                  having to know where on the verge it ended up. */}
+              <g transform={`translate(${head.x} ${head.y})`}>
+                <circle className="hero-route-probe-halo" r="17" />
+                <circle className="hero-route-probe-ring" r="11.5" />
+                <circle className="hero-route-probe-fill" r="11.5" />
+                <path
+                  className="hero-route-probe-tick"
+                  d="m-4.6 0.2 3.2 3.4 6-6.6"
+                  fill="none"
+                  strokeWidth="2.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </g>
+            </g>
+          );
+        })}
+
+        {/* The map pin, scaled down and pinned by its TIP to checkpoint 3.
+
+            The transform reads right to left: move the tip (484, 271) to the
+            origin, scale about it, then put it back down on the road at
+            (444.2, 290.5). Scaling about the tip rather than the pin's centre
+            is the whole point, because the tip is the part that has to stay
+            on the road: scale about anything else and the pin lifts off it.
+
+            0.82 because at full size it was the loudest thing in the scene
+            and it was competing with the headline next to it. The translate is
             an attribute on an outer group because the inner group's transform
             belongs to the stylesheet, and a CSS transform overwrites a
             presentation attribute on the same element. */}
-        <g transform="translate(-39.8 19.5)">
+        <g transform="translate(444.2 290.5) scale(0.82) translate(-484 -271)">
           <g className="hero-route-pin">
             <path
               d="M430 185c0-30 24-54 54-54s54 24 54 54c0 40-54 86-54 86s-54-46-54-86Z"
@@ -187,7 +247,7 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
               stroke="var(--color-brand-strong)"
               strokeWidth="2"
             />
-            <circle cx="484" cy="184" r="15.5" fill="#fff" />
+            <circle cx="484" cy="184" r="17" fill="#fff" />
             {/* THE REAL LOGO, not an approximation of it.
                 What sat here was a four pointed spark I drew by hand, on the
                 reasoning that Propsoch's mark is a house built around a spark
@@ -199,9 +259,16 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
                 A nested <svg> rather than a <g>: Logo owns its own viewBox and
                 a nested viewport both scales it and clips it to the glyph's
                 square, which is exactly what the "mark" variant needs. The
-                translate puts its 24x24 box centred on the pin's eye. */}
-            <g transform="translate(472 172)">
-              <Logo variant="mark" width={24} decorative />
+                translate puts its 29x29 box centred on the pin's eye.
+
+                29 in a disc of r=17, so the box's corners fall outside the
+                white. That is deliberately safe rather than lucky: the mark's
+                fill is #FF6D33 and so is the pin's, so anything that reaches
+                past the disc lands on the identical colour and cannot be
+                seen. It is why the mark can grow to fill the eye instead of
+                being sized to fit inside the disc's inscribed square. */}
+            <g transform="translate(469.5 169.5)">
+              <Logo variant="mark" width={29} decorative />
             </g>
           </g>
         </g>

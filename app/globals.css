@@ -833,6 +833,17 @@
   --done: 0;
 }
 
+/* The post the signal stands on. It dims with the rest of the marker rather
+   than staying solid, so an unreached checkpoint reads as an unlit signal on
+   its pole instead of a lit one that has lost its head. */
+.hero-route-probe-post {
+  stroke: var(--color-brand-strong);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: calc(0.22 + var(--done) * 0.78);
+  transition: opacity 320ms ease;
+}
+
 .hero-route-probe-halo {
   fill: var(--color-brand);
   opacity: calc(var(--done) * 0.15);
