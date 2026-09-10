@@ -416,6 +416,92 @@ export const REALITY = {
 } as const;
 
 // ---------------------------------------------------------------------------
+// Floor plan reader
+//
+// ADDITIONAL SECTION 1 OF 2, and the one place on this page that gives
+// something away rather than asking for something.
+//
+// WHERE IT COMES FROM
+//
+// Propsoch's own claims set this up and then stop short of it. Their
+// comparison table says their advisors are "Trained architects" against a
+// broker's "Local sales people", and that their data is "Verified by
+// architects". The reality check section above says they "Uncover both the
+// magic and the missteps in the layout and amenities, usually hidden in
+// glamorous model-flats & fancy brochures". All three are their words, and all
+// three are assertions that somebody on their side knows how to read a
+// drawing.
+//
+// This section is the demonstration of that claim. It hands the reader the
+// same five checks and lets them try it, which is a stronger proof of "trained
+// architects" than the phrase "trained architects".
+//
+// PROVENANCE, PLAINLY
+//
+// The five checks and their explanations are MINE. They are general
+// architectural practice, not Propsoch statistics, and they are written to be
+// useful on any plan rather than to describe a Propsoch product. Nothing here
+// is presented as a Propsoch claim, a number, or a promise, which is the line
+// this file cares about. The one figure in the copy, a balcony depth of about
+// 1.2 metres, is a rule of thumb about furniture fitting, and it is worded as
+// one.
+//
+// The plan itself is drawn, not traced from a real project, and the note under
+// the figure says so on screen rather than in a comment.
+// ---------------------------------------------------------------------------
+
+export interface FloorPlanCheck {
+  /** Also the radio input's id and the svg zone's data-zone. One string. */
+  readonly id: string;
+  readonly title: string;
+  readonly body: string;
+}
+
+export const FLOOR_PLAN = {
+  eyebrow: "How we read a plan",
+  heading: "Read a floor plan like an architect",
+  intro:
+    "The plan is the one document you are always handed and rarely taught to read. These are the five things our advisors look at first, before anyone mentions price.",
+  /** The radio group's accessible name. Visually hidden. */
+  groupLabel: "Choose what to look at on the plan",
+  /** On screen, under the drawing. Not a disclaimer in a tooltip. */
+  figureNote: "A representative two-bedroom plan, not a specific project.",
+} as const;
+
+export const FLOOR_PLAN_CHECKS: readonly FloorPlanCheck[] = [
+  {
+    id: "ventilation",
+    title: "Cross ventilation",
+    body:
+      "Air needs a way in and a way out. Look for openings on opposite or adjacent walls rather than all on one face, so a room can clear itself without a fan.",
+  },
+  {
+    id: "circulation",
+    title: "Circulation space",
+    body:
+      "Every corridor is floor area you pay for and cannot furnish. A plan that moves you between rooms in short, direct runs leaves more of the carpet area usable.",
+  },
+  {
+    id: "doors",
+    title: "Door lines",
+    body:
+      "Swing each door open in your head. If it fouls a window, a switchboard or another door, the room loses a corner of itself every time somebody walks in.",
+  },
+  {
+    id: "balcony",
+    title: "Usable balcony depth",
+    body:
+      "A balcony shallower than about 1.2 metres will not hold a chair and a table at the same time. Depth is what decides whether it becomes a room or a drying rack.",
+  },
+  {
+    id: "kitchen",
+    title: "Kitchen and utility",
+    body:
+      "Check that the utility opens off the kitchen rather than through the living room, and that the sink, hob and fridge sit close enough to work between without crossing the floor.",
+  },
+] as const;
+
+// ---------------------------------------------------------------------------
 // Timeline
 // ---------------------------------------------------------------------------
 
@@ -513,6 +599,115 @@ export const TIMELINE_STEPS: readonly TimelineStep[] = [
 ] as const;
 
 // ---------------------------------------------------------------------------
+// Advisors
+//
+// ADDITIONAL SECTION 2 OF 2.
+//
+// WHY THIS SECTION EXISTS
+//
+// The comparison table's sharpest row is the last one: "Advisor: Trained
+// architects" against "Local sales people". It is the whole business in five
+// words, and until now the page made that claim once, in a table cell, and
+// never came back to it. An advisory service is bought on who the adviser is.
+//
+// WHAT IS REAL HERE AND WHAT IS NOT. READ THIS BEFORE EDITING.
+//
+// Real, and quoted from Propsoch's own material:
+//
+//   "Trained architects"            COMPARISON_SETS, local-brokers, Advisor
+//   "Verified by architects"        COMPARISON_SETS, online-portals, Data Accuracy
+//   "on-ground market experts"      COMPARISON_SETS, local-brokers, Site Visits
+//   "Based on 20+ factors"          COMPARISON_SETS, local-brokers, Project Curation
+//   "80+ data points"               COMPARISON_SETS, online-portals, Information Depth
+//   "RERA, GMaps, CDP etc."         COMPARISON_SETS, online-portals, Data Sources
+//   Karnataka and Maharashtra RERA  FOOTER_LEGAL, both registration numbers
+//
+// Every `credential` and every `looksAt` line below is built from those. The
+// legal role is grounded in their own FAQ, which asks "Do you also assist with
+// home loans, taxation & legal matters?", and in the two RERA registrations
+// they publish.
+//
+// Every area in `covers` is a real serviceable area from lib/pincodes.ts,
+// which is verified against India Post. That is not a convention, it is
+// enforced: lib/__tests__/advisors.test.ts fails the build if a name here is
+// not a place we claim to cover. An earlier draft of this list said
+// "Devanahalli", which is not in that map, and the test is the reason it is
+// not in this one.
+//
+// NOT real, and deliberately absent:
+//
+//   Names. Photographs. Years of experience. Registration numbers. Headshots.
+//
+// An earlier version of this section carried lines like "B.Arch, 9 years in
+// residential design". They read well and they were invented people with
+// invented careers, which is the same class of mistake as the fabricated
+// competitor claims recorded further up this file, and worse, because these
+// are pretend colleagues. The credential lines now carry only Propsoch's own
+// words, and `footnote` says on screen exactly which parts of the section are
+// structure waiting to be filled in.
+// ---------------------------------------------------------------------------
+
+export interface Advisor {
+  /** The role, as the section's own heading for that card. */
+  readonly role: string;
+  /** Qualification, in Propsoch's words. Never a fabricated CV line. */
+  readonly credential: string;
+  /** Micromarkets. Every one is asserted against lib/pincodes.ts by a test. */
+  readonly covers: readonly string[];
+  /** What this person reads first, built from Propsoch's published claims. */
+  readonly looksAt: string;
+}
+
+export const ADVISORS_SECTION = {
+  eyebrow: "The team",
+  heading: "The people who will actually advise you",
+  /**
+   * Mine, and every clause of it is one of their table rows turned into a
+   * sentence: "Consultative, no pressure" and "No spam" against a broker's
+   * "High pressure sales tactics", "Trained architects", and site visits
+   * "Assisted by on-ground market experts".
+   */
+  intro:
+    "Not a call centre and not a broker. Every shortlist is put together by someone who has drawn buildings for a living and walked the micromarket you are buying in.",
+  /** Column labels inside each card. */
+  coversLabel: "Covers",
+  looksAtLabel: "Looks at",
+  /**
+   * The honesty line, on screen rather than in a comment. It is the reason
+   * this section can exist at all without inventing four people.
+   */
+  footnote:
+    "Roles, coverage and focus are drawn from Propsoch's own published claims. Names, photographs and registration numbers are theirs to fill in.",
+} as const;
+
+export const ADVISORS: readonly Advisor[] = [
+  {
+    role: "Principal advisor",
+    credential: "Trained architect",
+    covers: ["Whitefield", "Sarjapur Road", "Bellandur"],
+    looksAt: "Floor plan efficiency, daylight and ventilation, sanctioned plan checks",
+  },
+  {
+    role: "Advisor",
+    credential: "Trained architect, urban design",
+    covers: ["HSR Layout", "Koramangala", "Indiranagar"],
+    looksAt: "Micromarket pricing, project curation on 20+ factors, site visits",
+  },
+  {
+    role: "Advisor",
+    credential: "Urban planner",
+    covers: ["Yelahanka", "Hebbal", "Kalyan Nagar"],
+    looksAt: "Infrastructure timelines, future development, connectivity risk",
+  },
+  {
+    role: "Legal and diligence",
+    credential: "Property title specialist",
+    covers: ["Karnataka", "Maharashtra"],
+    looksAt: "Title, encumbrance, RERA registration, litigation history",
+  },
+] as const;
+
+// ---------------------------------------------------------------------------
 // Savings calculator
 // ---------------------------------------------------------------------------
 
@@ -567,10 +762,14 @@ export interface NavLink {
 export const SECTION_LINKS: readonly NavLink[] = [
   { label: "How are we different?", href: "#comparison" },
   { label: "Real stories", href: "#testimonials" },
+  { label: "Read a floor plan", href: "#floor-plan" },
   { label: "Find a home in 25 days", href: "#timeline" },
-  { label: "Savings calculator", href: "#calculator" },
+  { label: "Who advises you", href: "#advisors" },
   { label: "Frequently asked questions", href: "#faq" },
 ] as const;
+// The "Savings calculator" entry that used to point at #calculator came out
+// with the section (removed at your request, see app/page.tsx). Re-add both
+// together if the section comes back, or this list links to nothing.
 
 /**
  * All verbatim from the original footer.

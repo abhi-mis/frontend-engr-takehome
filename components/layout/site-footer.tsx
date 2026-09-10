@@ -87,7 +87,7 @@ export function SiteFooter() {
             </div>
 
             <div className="flex shrink-0 flex-col items-start gap-3">
-              <PrimaryCta size="lg" withArrow className="lift shadow-lg">
+              <PrimaryCta size="lg" withArrow className="lift">
                 {HERO.primaryCta}
               </PrimaryCta>
               {/* Sourced from TRUSTED_BY rather than typed inline, so the

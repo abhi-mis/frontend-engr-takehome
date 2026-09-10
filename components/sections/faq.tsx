@@ -37,14 +37,34 @@ export function Faq() {
             The closing card.
 
             Theirs is a flat orange band with the copy on the left and a white
-            button on the right. This keeps that shape and its three strings,
-            and fixes the two things wrong with it: a white button on bright
-            orange is a 2.80:1 boundary, and a flat fill next to a page built
-            on layered depth looks like a different site.
+            button on the right. This keeps that shape and its three strings.
 
-            So: the deep brand orange, which the white label and the card's own
-            edge both clear comfortably, and a soft radial to give the fill some
-            light.
+            THE FILL IS THE BUTTON'S OWN ORANGE, NOT THE DARKENED ONE.
+
+            This card used to sit on `--color-brand-strong` (#C2410C), the
+            same deep rust the primary button only ever reaches at its ACTIVE
+            state. Every button on the page rests at the bright
+            `--color-brand-button` (#FF6D33), so a card that opens on the
+            button's resting colour and closes on its pressed one read as two
+            different oranges rather than one brand.
+
+            The fill is `bg-brand-button` now, matching the button family at
+            rest, and the copy moved from white to `--color-on-brand`
+            (#1A1206): white is only 2.80:1 on this brighter orange and fails
+            AA, the same number the ORIGINAL site's white-on-orange button
+            was called out for. `--color-on-brand` is the one foreground this
+            palette allows on bright brand orange (6.61:1, the same pairing
+            the Bromatker ribbon and the timeline markers already use), so
+            the card gets the brighter fill without reintroducing the bug the
+            darker fill existed to avoid.
+
+            The one thing that does NOT get the full 6.61:1 treatment is the
+            white "Book A Free Call" button's own edge against this fill: it
+            softens from 5.18:1 (against the old dark rust) to 2.80:1 (against
+            this brighter one), the same number as the text swap above. Its
+            shadow is what now carries the boundary rather than the fill, which
+            is a deliberate, visible trade rather than a silent one — see the
+            ACCEPTED_DEVIATIONS entry in scripts/check-contrast.mjs.
 
             The artwork used to be Propsoch's spectacles graphic. It was a
             stock-feeling object that said nothing about this card, which is a
@@ -57,10 +77,10 @@ export function Faq() {
             graphic was an 11 KB fetch), scales without a srcset, and picks up
             currentColor instead of shipping baked-in pixels.
         ---------------------------------------------------------------- */}
-        <div className="relative isolate mt-14 overflow-hidden rounded-panel bg-brand-strong shadow-lg">
+        <div className="relative isolate mt-14 overflow-hidden rounded-panel bg-brand-button shadow-lg">
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(90%_140%_at_12%_0%,rgba(255,255,255,0.22)_0%,transparent_60%)]"
+            className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(90%_140%_at_12%_0%,rgba(255,255,255,0.28)_0%,transparent_60%)]"
           />
 
           <div className="flex flex-col items-center gap-6 px-6 py-8 text-center sm:px-10 md:flex-row md:justify-between md:gap-10 md:text-left lg:px-14 lg:py-10">
@@ -97,18 +117,17 @@ export function Faq() {
               </svg>
 
               <div className="flex flex-col gap-1.5">
-                <h3 className="text-2xl font-bold text-white">
+                <h3 className="text-2xl font-bold text-on-brand">
                   {FAQ_CTA.heading}
                 </h3>
-                {/* Solid white, not white/85.
-                    I wrote the alpha first and then measured it: 85% white
-                    composited over #C2410C resolves to #F6E3DB, which is
-                    4.17:1 and FAILS AA for text this size. That is the same
-                    mistake this build called out in shadcn's tab styling back
-                    in entry 4, made by me, in the same way, because an alpha
-                    looks like a colour and is not one. Hierarchy here comes
-                    from size and weight instead, which cost nothing. */}
-                <p className="text-base text-white">{FAQ_CTA.sub}</p>
+                {/* Solid on-brand, not on-brand/70.
+                    Same lesson as before, moved to the new fill: an alpha's
+                    contrast depends on what it composites against, not on the
+                    number in the class name, and the earlier version of this
+                    card was caught out by exactly that once already (see the
+                    white/85 note this replaced). Hierarchy here comes from
+                    size and weight instead, which cost nothing. */}
+                <p className="text-base text-on-brand">{FAQ_CTA.sub}</p>
               </div>
             </div>
 
@@ -117,7 +136,7 @@ export function Faq() {
             <PrimaryCta
               size="lg"
               withArrow
-              className="lift w-full shrink-0 bg-white text-brand-strong shadow-md hover:bg-white active:bg-white sm:w-auto"
+              className="lift w-full shrink-0 bg-white text-brand-strong shadow-lg hover:bg-white active:bg-white sm:w-auto"
             >
               {FAQ_CTA.cta}
             </PrimaryCta>

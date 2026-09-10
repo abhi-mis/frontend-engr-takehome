@@ -1,4 +1,5 @@
 import { HeroRouteArt } from "@/components/brand/hero-route-art";
+import { Typewriter } from "@/components/sections/typewriter";
 import { PrimaryCta } from "@/components/primary-cta";
 import { HERO, STATS } from "@/lib/content";
 import { TRUST_LOGOS } from "@/lib/logos.generated";
@@ -85,7 +86,7 @@ export function Hero() {
           pt-12/16/20 left it floating in dead space instead of opening the
           page. */}
       <div className="hero-home-layout mx-auto grid w-full max-w-[1340px] grid-cols-1 items-center gap-8 px-5 pt-7 pb-6 sm:px-8 sm:pt-10 lg:grid-cols-[minmax(0,0.94fr)_minmax(460px,1.06fr)] lg:gap-8 lg:px-10 lg:pt-14 lg:pb-10 xl:gap-14">
-        <div className="hero-home-copy relative flex flex-col items-start lg:pb-2">
+        <div className="hero-home-copy relative z-10 flex flex-col items-start lg:pb-2">
           {/* The headline.
 
               THE LCP RULE, AND WHERE THE TYPEWRITER SITS RELATIVE TO IT
@@ -122,7 +123,10 @@ export function Hero() {
                     key={phrase}
                     aria-hidden
                     className="type-item"
-                    style={{ "--i": i } as React.CSSProperties}
+                    // data-i rather than a --i custom property, because the
+                    // stylesheet has to SELECT on it now (an attribute) rather
+                    // than only read it (a variable).
+                    data-i={i}
                   >
                     <span className="type-text">{phrase}</span>
                     <span className="type-caret" />
@@ -140,6 +144,10 @@ export function Hero() {
                 {" " +
                   [HERO.headlineAccent, ...HERO.headlineAlternates].join(" ")}
               </span>
+
+              {/* Renders nothing. Steps the reveal so it costs 24 style
+                  recalculations per cycle instead of 60 every second. */}
+              <Typewriter />
             </span>
           </h1>
 
@@ -156,7 +164,7 @@ export function Hero() {
             className="hero-home-actions animate-rise mt-9 flex flex-wrap items-center gap-x-6 gap-y-3"
             style={{ "--delay": "160ms" } as React.CSSProperties}
           >
-            <PrimaryCta size="lg" withArrow className="lift shadow-sm">
+            <PrimaryCta size="lg" withArrow className="lift">
               {HERO.primaryCta}
             </PrimaryCta>
 
@@ -168,9 +176,24 @@ export function Hero() {
             </button>
           </div>
 
-          {/* 4. The real numbers, as chips so the orange gets another fill. */}
+          {/* 4. The real numbers.
+
+              THEY MOVED INTO THE ARTWORK ON DESKTOP, AND THEY ARE STILL HERE.
+
+              From lg up the four stats are dealt out inside the route scene,
+              one per checkpoint, as the car reaches the point on the road that
+              produced each one. Leaving the chip grid visible as well would
+              have printed the same four facts twice on one screen.
+
+              So this is `lg:sr-only`, not `lg:hidden`. The distinction is the
+              whole point: the artwork is aria-hidden decoration, so if these
+              were display:none above lg a screen reader would lose Propsoch's
+              numbers entirely on a desktop. sr-only keeps them in the
+              accessibility tree at every width, and below lg, where the
+              artwork is display:none, they render as the chips they always
+              were. */}
           <dl
-            className="hero-home-stats animate-rise mt-12 grid w-full max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4"
+            className="hero-home-stats animate-rise mt-12 grid w-full max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4 lg:sr-only lg:mt-0"
             style={{ "--delay": "240ms" } as React.CSSProperties}
           >
             {STATS.map((stat) => (
@@ -191,58 +214,48 @@ export function Hero() {
 
         {/* The artwork.
 
+            IT IS THE HERO'S BACKGROUND NOW, AND IT IS STILL THE LOUDEST THING
+            ON THIS SIDE OF THE PAGE.
+
+            It used to be a picture in a frame: a white card with its own
+            border, an inner white ring and a dashed orbit, sitting in the
+            right-hand grid cell like a widget that had been bolted on. Three
+            nested frames around a drawing is a lot of furniture, and all of it
+            was drawing a hard line between "the hero" and "the illustration".
+
+            This cell is now a SPACER that reserves the layout, and the scene
+            inside it is absolutely positioned so it bleeds well past the
+            cell's left and vertical edges. A left-hand mask on the artwork
+            itself dissolves it into the background wash before it reaches the
+            copy, so the map appears to be the ground the headline is printed
+            on rather than a panel next to it. The bleed deliberately does NOT
+            extend to the right, because the section clips at the viewport and
+            the detail cards live in that corner.
+
             HIDDEN OUTRIGHT BELOW lg, not scaled down and not merely invisible.
+            `hidden` is display:none, so on a phone it costs no layout box, no
+            paint and no animation frames, its subtree leaves the accessibility
+            tree with it, and the RouteProgress effect below finds nothing to
+            drive. On a 360px screen it was a decorative diagram squeezed under
+            the fold, pushing the numbers and the logos further down for no
+            informational gain.
 
-            This comment was true of the intent and false of the code: the
-            `hidden lg:flex` had gone, and the stage rendered 305x300 on a 360px
-            screen behind a comment saying it did not. The mobile-only heights
-            it carried (h-[300px] sm:h-[390px]) are gone with it, because a dead
-            class that describes mobile sizing sitting next to a comment saying
-            there is no mobile rendering is the same lie twice.
-            `hidden` is display:none, so it costs no layout box, no paint and no
-            animation frames on a phone, and its subtree leaves the
-            accessibility tree with it. On a 360px screen it was a decorative
-            diagram squeezed under the fold, pushing the numbers and the logos
-            further down for no informational gain.
-
-            Inline SVG, so it costs no request either way, and its fixed viewBox
-            reserves its own space so it cannot shift layout. */}
+            Inline SVG, so it costs no request either way, and the cell's fixed
+            height reserves its space so it cannot shift layout. */}
         <div
-          className="hero-route-stage animate-rise relative isolate mx-auto hidden h-[600px] w-full max-w-[660px] items-center justify-center justify-self-center lg:flex"
+          className="hero-route-stage animate-rise relative hidden h-[560px] w-full justify-self-center lg:block xl:h-[620px]"
           style={{ "--delay": "320ms" } as React.CSSProperties}
         >
-          <div
-            aria-hidden
-            className="hero-route-stage-glow absolute inset-[8%] rounded-full bg-[color-mix(in_oklch,var(--color-brand)_19%,transparent)] blur-[76px]"
-          />
-          <div
-            aria-hidden
-            className="hero-route-stage-grid absolute inset-[1%] rounded-[3rem] opacity-65"
-          />
-          <div
-            aria-hidden
-            className="hero-route-stage-orbit absolute inset-[5%] rounded-[3rem] border border-dashed border-brand-soft/55"
-          />
-          <div
-            aria-hidden
-            className="absolute inset-[14%] rounded-[3rem] border border-white/70 shadow-[inset_0_0_60px_rgba(255,255,255,0.6)]"
-          />
-          <div className="hero-route-shell relative z-10 h-full w-full">
-            <HeroRouteArt className="h-full w-full" />
-
-            {/* The two floating figure cards that used to sit here are
-                gone. They read "Curated on 20+ factors" and "Average
-                saved ~Rs 4.78 L", both real Propsoch numbers, and both
-                already stated in words further down the page: the
-                curation figure in the comparison table and the process
-                step, the saving in the calculator, where it carries the
-                illustrative-estimate note it needs.
-
-                Saying them again as labels floating over a diagram made
-                the artwork explain itself in text. The graphic now makes
-                the same two points visually instead, which is what an
-                illustration is for: three listings with one shortlisted,
-                and a verified home at the end of the route. */}
+          <div className="hero-route-bleed pointer-events-none">
+            {/* One static glow behind the scene. It used to breathe on a nine
+                second loop; the hero already has a drifting blob doing exactly
+                that job two layers down, and two slow pulses in the same
+                corner read as a flicker rather than as depth. */}
+            <div
+              aria-hidden
+              className="absolute inset-[12%] rounded-full bg-[color-mix(in_oklch,var(--color-brand)_17%,transparent)] blur-[86px]"
+            />
+            <HeroRouteArt />
           </div>
         </div>
       </div>

@@ -118,6 +118,13 @@ const CHECKS = [
 
   // The Bromatker wordmark on the orange band.
   { fg: "onBrand", bg: "brand", min: TEXT, note: "Bromatker wordmark on the band" },
+  // The FAQ closing card. Same pair as the wordmark above (brandButton and
+  // brand are the same hex, #FF6D33), listed again under its own note because
+  // it is a different piece of real copy: this card used to sit on the darker
+  // brandStrong with white text, and moved to the bright button orange with
+  // onBrand text to match the primary CTA's resting colour instead of its
+  // active one.
+  { fg: "onBrand", bg: "brandButton", min: TEXT, note: "FAQ closing card heading and sub-copy" },
   // The "mat" annotation: near-black on the accent yellow highlighter. The same
   // two colours as the original's failing pale-yellow-on-orange, with the roles
   // swapped, which takes it from 1.95:1 to the best ratio on the site.
@@ -178,6 +185,17 @@ const ACCEPTED_DEVIATIONS = [
     bg: "brandButton",
     min: TEXT,
     note: "primary CTA label. Accepted by product decision, see the note above",
+  },
+  {
+    fg: "white",
+    bg: "brandButton",
+    min: UI,
+    note:
+      "FAQ closing card: the white button's own edge against the card fill. " +
+      "It was 5.18:1 against the darker brandStrong fill the card used to sit " +
+      "on; moving the card to brandButton (see the TEXT check above) softens " +
+      "that boundary to the same 2.80:1 as the pair above it. The button's own " +
+      "shadow-lg carries the boundary instead of the fill here.",
   },
 ];
 

@@ -1,33 +1,95 @@
+import { HERO, STATS } from "@/lib/content";
+import { Logo } from "@/components/brand/logo";
+import { RouteProgress } from "@/components/brand/route-progress";
+
 /**
- * Decorative real-estate journey scene for the hero.
+ * The hero's guided-route scene.
  *
  * It is built from HTML and inline SVG rather than an illustration asset: it
  * adds no image request, owns a predictable box from first layout, and keeps
  * the headline as the hero's only likely LCP candidate.
  *
+ * WHAT CHANGED IN THIS PASS
+ *
+ * 1. IT IS NO LONGER A PICTURE IN A FRAME. The scene used to sit inside a
+ *    white card with its own border, inner ring and dashed orbit, parked in the
+ *    right-hand grid cell. Three nested frames around a drawing is what made it
+ *    read as a widget bolted onto the hero instead of part of it. The frames
+ *    are gone and the artwork now bleeds out of its cell and is masked into the
+ *    background wash, so it behaves like the hero's backdrop while staying the
+ *    loudest thing on that side of the page.
+ *
+ * 2. THE ROAD IS MADE OF THE BROMATKER RIBBON. The hero used to carry a
+ *    full-bleed scrolling "Bromatker" marquee under the headline, competing
+ *    with the copy for first read. It was removed, and the campaign's whole
+ *    joke went with it. It is back here as the road's lane lettering, set on a
+ *    textPath along the exact road curve: the same wordmark, in the one place
+ *    on the page where it is decoration rather than a third thing to read.
+ *    Static, so it costs nothing per frame.
+ *
+ * 3. THE CHECKPOINTS ARE EARNED. Every tick in the scene used to be drawn
+ *    already ticked, which is a picture of a finished journey rather than a
+ *    journey. Each of the four is now marked only once the car has actually
+ *    driven through it, and the four detail cards fill in with them. See
+ *    components/brand/route-progress.tsx for why that is one attribute rather
+ *    than eight keyframe animations.
+ *
  * THE CAR FOLLOWS THE ROAD, AND THAT IS WHY IT LIVES IN THE SVG
  *
  * It used to be an HTML div outside the SVG, animated with a translate between
- * two hand-picked points and a fixed `rotate(-25deg)`. A straight line between
- * two points cannot follow an S-curve, so it drifted off the road in the middle
- * and pointed the wrong way at both ends. No amount of tuning the keyframes
- * fixes that, because the shape of the motion was wrong, not its numbers.
+ * two hand-picked points. A straight line between two points cannot follow an
+ * S-curve, so it drifted off the road in the middle and pointed the wrong way
+ * at both ends. It is now a group INSIDE the svg, driven by CSS Motion Path
+ * along the exact same path data the road is drawn from, so "on the road" is
+ * guaranteed by construction rather than by matching two coordinate spaces by
+ * hand. `offset-rotate: auto` turns the car to the tangent, so it banks through
+ * the curves and arrives at the house pointing at the door.
  *
- * It is now a group INSIDE the svg, driven by CSS Motion Path along the exact
- * same path data the road is drawn from. Being in the svg means it shares the
- * road's coordinate system, so "on the road" is guaranteed by construction
- * rather than by matching two coordinate spaces by hand. `offset-rotate: auto`
- * turns the car to the tangent, so it banks through the curves and arrives at
- * the house pointing at the door.
- *
- * ROAD is declared once and used four times: three stroked passes that draw the
- * road, and a custom property the stylesheet reads for `offset-path`. One
- * string, so the car and the road cannot drift apart in a later edit.
+ * ROAD is declared once and used five times: the stroked passes that draw the
+ * road, the textPath the lettering rides, and a custom property the stylesheet
+ * reads for `offset-path`. One string, so nothing here can drift apart.
  */
 
-/** The route, in the svg's own 640x540 user space. */
+/** The route, in the svg's own 640x540 user space.
+ *
+ * The last segment used to run 101 units further, to (624, 118), which is
+ * INSIDE the destination house's footprint. The car obediently drove to the
+ * end of its path and parked in the living room. It now levels off at
+ * (588, 152), directly below the house, so the arrival reads as a car on the
+ * drive rather than a car in the wall. */
 const ROAD =
-  "M26 449C124 461 166 415 249 385c76-27 120-1 168-55 47-53 49-119 106-167 29-24 58-39 101-45";
+  "M26 449C124 461 166 415 249 385c76-27 120-1 168-55 47-53 49-119 106-167 26-17 48-13 65-11";
+
+/** textPath needs a referencable path, and an id has to be unique per page. */
+const ROAD_ID = "propsoch-hero-road";
+
+/**
+ * The three on-road checkpoints, at MEASURED points on the curve rather than at
+ * coordinates that look about right: 22%, 46% and 68% along the path, computed
+ * by arc length (the path is 683.9 units long). The fourth checkpoint is the
+ * house at the end, which is why there are three entries here and four cards.
+ *
+ * Checkpoint 3 doubles as the foot of the map pin, so the pin's tip lands on
+ * the road instead of floating 27 units above it, which is where it was. If
+ * ROAD changes, these three move with it: recompute by arc length rather than
+ * nudging them until they look close.
+ */
+const CHECKPOINTS = [
+  { x: 171.2, y: 420 },
+  { x: 326, y: 369.7 },
+  { x: 444.2, y: 290.5 },
+] as const;
+
+/**
+ * How many times the wordmark repeats along the road.
+ *
+ * Propsoch's marquee used eight, and eight is one too many for 683.9 units at
+ * this size: SVG simply stops rendering a textPath where the path ends, so the
+ * eighth copy was cut off mid-word at the house. Seven fills the road with the
+ * last one landing whole. HERO.marqueeRepeat still governs the marquee this
+ * borrows from, and is the ceiling here.
+ */
+const ROAD_WORDMARKS = Math.min(7, HERO.marqueeRepeat);
 
 export function HeroRouteArt({ className }: { readonly className?: string }) {
   return (
@@ -41,45 +103,149 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
         // and the drawing are the same string.
         style={{ "--road": `path("${ROAD}")` } as React.CSSProperties}
       >
+        <defs>
+          <path id={ROAD_ID} d={ROAD} />
+        </defs>
+
         <g className="hero-route-blocks" stroke="var(--color-line-strong)" strokeOpacity="0.18">
           <path d="M38 111h95v66H38zM153 67h96v84h-96zM270 38h83v61h-83zM409 62h103v74H409zM532 127h72v54h-72z" />
           <path d="M61 233h108v77H61zM191 185h85v64h-85zM491 224h98v70h-98zM436 339h128v83H436zM82 400h107v72H82z" />
           <path d="M87 126h36M203 90h31M284 69h32M427 90h39M547 149h30M83 254h49M209 207h42M511 246h40M458 364h61M103 425h44" />
         </g>
 
-        <path d={ROAD} stroke="#fff" strokeWidth="34" strokeLinecap="round" />
+        {/* The road, three passes: a white kerb, a warm surface, and the
+            lettering. The surface is brand-soft rather than grey, because the
+            hero's ground is a peach wash and a neutral grey road sat on top of
+            it as a foreign object. */}
+        <path d={ROAD} stroke="#fff" strokeWidth="38" strokeLinecap="round" />
         <path
+          className="hero-route-surface"
           d={ROAD}
-          stroke="var(--color-line-strong)"
-          strokeOpacity="0.28"
-          strokeWidth="22"
+          stroke="var(--color-brand-soft)"
+          strokeOpacity="0.44"
+          strokeWidth="28"
           strokeLinecap="round"
         />
-        <path
-          className="hero-route-road-dashes"
-          d={ROAD}
-          stroke="var(--color-brand)"
-          strokeOpacity="0.8"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeDasharray="2 13"
-        />
 
-        {/* Checkpoints on the route, at measured points on the path itself
-            (34% and 62% along it) rather than at coordinates that look about
-            right. Propsoch's argument is that the journey is inspected, not
-            just travelled, so the road carries marks where the work happens
-            and the car drives through them. */}
-        <g className="hero-route-probe">
-          <circle cx="260" cy="381" r="13" />
-          <circle className="hero-route-probe-dot" cx="260" cy="381" r="3.6" />
-        </g>
-        <g className="hero-route-probe">
-          <circle cx="437" cy="302" r="13" />
-          <circle className="hero-route-probe-dot" cx="437" cy="302" r="3.6" />
+        {/* The Bromatker wordmark as lane lettering.
+            "Broker" with "mat" wedged into the seam reads at once as "Broker"
+            and as "Bro mat kar", Hindi for "do not do it, bro". The raised
+            insertion is the joke, so it is a smaller tspan lifted off the
+            baseline, and `paint-order: stroke` in the stylesheet turns its
+            yellow stroke into the highlighter behind it rather than an outline
+            around it. */}
+        <text className="hero-route-wordmark">
+          <textPath href={`#${ROAD_ID}`} startOffset="2.5%">
+            {Array.from({ length: ROAD_WORDMARKS }, (_, i) => (
+              <tspan key={i}>
+                <tspan>{i === 0 ? "Bro" : "  ·  Bro"}</tspan>
+                <tspan className="hero-route-wordmark-mat" dy="-3.4">
+                  mat
+                </tspan>
+                <tspan dy="3.4">ker</tspan>
+              </tspan>
+            ))}
+          </textPath>
+        </text>
+
+        {/* Checkpoints. Each is drawn ticked and the stylesheet takes the tick
+            away until the car has been past, so the still image, the
+            no-JavaScript render and the reduced-motion render are all the
+            finished journey rather than an empty one. */}
+        {CHECKPOINTS.map((point, i) => (
+          <g
+            key={point.x}
+            className="hero-route-probe"
+            data-step={i + 1}
+            transform={`translate(${point.x} ${point.y})`}
+          >
+            <circle className="hero-route-probe-halo" r="17" />
+            <circle className="hero-route-probe-ring" r="11.5" />
+            <circle className="hero-route-probe-fill" r="11.5" />
+            <path
+              className="hero-route-probe-tick"
+              d="m-4.6 0.2 3.2 3.4 6-6.6"
+              fill="none"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+        ))}
+
+        {/* The map pin, moved so its TIP sits on the road at checkpoint 3
+            instead of hovering 27 units beside it. The offset is (484, 271),
+            where the tip is drawn, subtracted from the checkpoint. The translate is
+            an attribute on an outer group because the inner group's transform
+            belongs to the stylesheet, and a CSS transform overwrites a
+            presentation attribute on the same element. */}
+        <g transform="translate(-39.8 19.5)">
+          <g className="hero-route-pin">
+            <path
+              d="M430 185c0-30 24-54 54-54s54 24 54 54c0 40-54 86-54 86s-54-46-54-86Z"
+              fill="var(--color-brand)"
+              stroke="var(--color-brand-strong)"
+              strokeWidth="2"
+            />
+            <circle cx="484" cy="184" r="15.5" fill="#fff" />
+            {/* THE REAL LOGO, not an approximation of it.
+                What sat here was a four pointed spark I drew by hand, on the
+                reasoning that Propsoch's mark is a house built around a spark
+                and the pin was already the house. It was a decent guess and it
+                was still a redrawn logo in the middle of a hero.
+                components/brand/logo.tsx has the actual path, lifted from
+                their site, so the pin now carries the mark itself.
+
+                A nested <svg> rather than a <g>: Logo owns its own viewBox and
+                a nested viewport both scales it and clips it to the glyph's
+                square, which is exactly what the "mark" variant needs. The
+                translate puts its 24x24 box centred on the pin's eye. */}
+            <g transform="translate(472 172)">
+              <Logo variant="mark" width={24} decorative />
+            </g>
+          </g>
         </g>
 
-        {/* The car.
+        <g className="hero-route-destination">
+          <path d="M552 76 590 45l38 31v65h-76V76Z" fill="var(--color-brand-tint)" stroke="var(--color-brand-strong)" strokeWidth="2" strokeLinejoin="round" />
+          <path d="M566 91h15v17h-15zM598 91h15v17h-15z" fill="var(--color-brand-soft)" />
+          <path d="M583 141v-23h15v23" fill="var(--color-brand)" />
+          {/* The house at the end of the route is a VERIFIED one, and that is
+              checkpoint four: the badge lands when the car parks, not before. */}
+          <g className="hero-route-probe hero-route-verified" data-step="4">
+            <circle className="hero-route-probe-halo" cx="622" cy="132" r="17" />
+            {/* The waiting state. Without this the badge simply was not there
+                until the car arrived, and a house with nothing beside it does
+                not read as "not verified yet", it reads as a missing element. */}
+            <circle className="hero-route-probe-ring" cx="622" cy="132" r="12" />
+            <circle
+              className="hero-route-probe-fill"
+              cx="622"
+              cy="132"
+              r="12"
+              stroke="#fff"
+              strokeWidth="3"
+            />
+            <path
+              className="hero-route-probe-tick"
+              d="m616 132 4 4 8-8"
+              fill="none"
+              strokeWidth="2.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+        </g>
+
+        <g className="hero-route-sun">
+          <circle cx="129" cy="128" r="34" fill="var(--color-brand-soft)" fillOpacity="0.32" />
+          <circle cx="129" cy="128" r="18" fill="var(--color-brand)" fillOpacity="0.16" />
+        </g>
+        {/* The car, drawn LAST so nothing occludes it.
+            It used to sit before the pin, and the pin's body covered it at
+            exactly the point where the two meet, which is the pin's own foot
+            and checkpoint three: the one moment in the loop you most want to
+            watch. Painting order is the whole fix.
             Drawn around its own origin with the wheels resting on y = 0, so the
             point the motion path carries is the point where rubber meets road.
             Nose along +x, which is the direction offset-rotate: auto faces. */}
@@ -105,69 +271,7 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
           </g>
         </g>
 
-        <path
-          d="M430 185c0-30 24-54 54-54s54 24 54 54c0 40-54 86-54 86s-54-46-54-86Z"
-          fill="var(--color-brand)"
-          stroke="var(--color-brand-strong)"
-          strokeWidth="2"
-        />
-        <circle cx="484" cy="184" r="14" fill="#fff" />
-        {/* Propsoch's own mark, not a generic house glyph. Their logo is a
-            house built around a four pointed spark, and the pin already is the
-            house, so the spark is the part worth repeating here. */}
-        <path
-          d="M484 174c0 5.52 4.48 10 10 10-5.52 0-10 4.48-10 10 0-5.52-4.48-10-10-10 5.52 0 10-4.48 10-10Z"
-          fill="var(--color-brand-strong)"
-        />
 
-        <g className="hero-route-destination">
-          <path d="M552 76 590 45l38 31v65h-76V76Z" fill="var(--color-brand-tint)" stroke="var(--color-brand-strong)" strokeWidth="2" strokeLinejoin="round" />
-          <path d="M566 91h15v17h-15zM598 91h15v17h-15z" fill="var(--color-brand-soft)" />
-          <path d="M583 141v-23h15v23" fill="var(--color-brand)" />
-          {/* The house at the end of the route is a VERIFIED one. That is the
-              whole proposition, and it was the one thing the scene did not say:
-              the old version drew a journey to a generic house. */}
-          <g className="hero-route-verified">
-            <circle cx="622" cy="132" r="12" fill="var(--color-brand-strong)" stroke="#fff" strokeWidth="3" />
-            <path d="m616 132 4 4 8-8" stroke="#fff" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
-          </g>
-        </g>
-
-        {/* The report you leave with. Propsoch's signature deliverable is a
-            written Peace of Mind Report, and the scene ended at a house with
-            no sign of one. Drawn as three checked lines, so it reads as a
-            findings document without needing a word on it. */}
-        <g className="hero-route-report">
-          <rect x="468" y="436" width="134" height="86" rx="16" fill="#fff" />
-          <rect x="468" y="436" width="134" height="86" rx="16" fill="none" stroke="var(--color-line-strong)" strokeOpacity="0.2" strokeWidth="2" />
-          {[464, 486, 508].map((y, i) => (
-            <g key={y}>
-              <circle cx="492" cy={y} r="6.4" fill="var(--color-brand)" fillOpacity={i === 2 ? 0.42 : 1} />
-              <path
-                d={`m489 ${y} 2.4 2.5 4.7-4.9`}
-                stroke="#fff"
-                strokeWidth="1.9"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-              <rect
-                x="508"
-                y={y - 3.5}
-                width={i === 2 ? 44 : 70}
-                height="7"
-                rx="3.5"
-                fill="var(--color-line-strong)"
-                fillOpacity="0.3"
-              />
-            </g>
-          ))}
-        </g>
-
-        <g className="hero-route-sun">
-          <circle cx="129" cy="128" r="34" fill="var(--color-brand-soft)" fillOpacity="0.32" />
-          <circle cx="129" cy="128" r="18" fill="var(--color-brand)" fillOpacity="0.16" />
-        </g>
       </svg>
 
       <div className="hero-route-listing hero-route-listing--one">
@@ -178,14 +282,47 @@ export function HeroRouteArt({ className }: { readonly className?: string }) {
         <span className="hero-route-listing-image" />
         <span className="hero-route-listing-lines"><i /><i /></span>
       </div>
-      {/* The shortlisted one. Two faded listings and one picked out is the
-          curation story the removed "Curated on 20+ factors" card used to tell
-          in words, and a diagram can carry it without a label. */}
+      {/* The shortlisted one. Two listings receding and one picked out is the
+          curation story told the way a diagram should tell it. */}
       <div className="hero-route-listing hero-route-listing--three hero-route-listing--picked">
         <span className="hero-route-listing-image" />
         <span className="hero-route-listing-lines"><i /><i /></span>
         <span className="hero-route-listing-mark" />
       </div>
+
+      {/* The numbers, dealt out as the drive earns them.
+
+          These are Propsoch's four real stats, and until now they were a chip
+          grid sitting under the hero CTA. Same four facts, so printing them
+          twice on one screen would have been worse than printing them once:
+          on desktop they live here, one per checkpoint, and the chip grid stays
+          in the DOM for screen readers and renders normally below lg where the
+          artwork is display:none. See components/sections/hero.tsx.
+
+          Tying them to the checkpoints is what makes the panel worth the
+          space. A static list of four numbers is a list of four numbers; the
+          same four arriving one at a time, each as the car reaches the point
+          on the road that produced it, is the argument the whole scene is
+          making. */}
+      <div className="hero-route-panel">
+        <p className="hero-route-panel-head">
+          <Logo width={78} decorative />
+          <span className="hero-route-panel-dot" />
+        </p>
+        <ul className="hero-route-steps">
+          {STATS.map((stat, i) => (
+            <li key={stat.label} className="hero-route-step" data-step={i + 1}>
+              <span className="hero-route-step-badge" />
+              <span className="hero-route-step-text">
+                <span className="hero-route-step-value">{stat.value}</span>
+                <span className="hero-route-step-label">{stat.label}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <RouteProgress />
     </div>
   );
 }

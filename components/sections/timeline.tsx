@@ -98,7 +98,7 @@ export function Timeline() {
               is not sticky and they simply sit above the steps, which is where
               their page puts them too. */}
           <div className="mt-9 flex flex-col gap-8">
-            <PrimaryCta size="lg" withArrow className="lift w-fit shadow-sm">
+            <PrimaryCta size="lg" withArrow className="lift w-fit">
               {TIMELINE.cta}
             </PrimaryCta>
 

@@ -131,7 +131,7 @@ export function PincodeChecker() {
                   type="submit"
                   // Matches PrimaryCta: white label on the bright brand orange,
                   // with the same orange-family interaction states.
-                  className="h-12 gap-2 border-0 bg-brand-button px-6 text-base font-semibold text-white shadow-[0_1px_2px_rgba(26,18,6,0.18)] hover:bg-brand-display active:bg-brand-strong"
+                  className="h-12 gap-2 border-0 bg-brand-button px-6 text-base font-semibold text-white shadow-[0_1px_2px_rgba(26,18,6,0.15)] hover:bg-brand-display active:bg-brand-strong"
                 >
                   <SearchIcon aria-hidden className="size-4" />
                   {PINCODE.buttonLabel}

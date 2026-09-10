@@ -24,6 +24,17 @@ import { ArrowRightIcon } from "@/components/icons";
  * This keeps the CTA recognizable as the same brand device as the ribbon while
  * preserving a readable label and a visible focus treatment.
  *
+ * THE SHADOW IS A HINT, NOT A JUMP
+ *
+ * The hover shadow used to grow from a 2px resting shadow to a 16px-blur,
+ * 32%-opacity one, and every call site was also free to pass its own
+ * shadow-sm/shadow-md/shadow-lg override through `className`, so the same
+ * button could carry a different base shadow depending on which section it
+ * sat in. Combined with the `lift` hover lift, that read as the button
+ * hopping rather than lifting. The shadow now only ever changes by this
+ * component and only by a small amount, so it looks the same everywhere it
+ * renders. Call sites should not pass their own `shadow-*` override.
+ *
  * Height is `h-11` (44px) or `h-12` in the hero, because shadcn's largest size
  * is `h-9` (36px), under the brief's 44px touch target.
  *
@@ -57,7 +68,7 @@ export function PrimaryCta({
         // rather than recolouring it keeps the metrics honest.
         "group/cta border-0 bg-brand-button font-semibold text-white",
         "hover:bg-brand-display active:bg-brand-strong",
-        "shadow-[0_1px_2px_rgba(26,18,6,0.18)] hover:shadow-[0_6px_16px_rgba(255,109,51,0.32)]",
+        "shadow-[0_1px_2px_rgba(26,18,6,0.15)] hover:shadow-[0_3px_8px_rgba(255,109,51,0.22)]",
         size === "lg" ? "h-12 gap-2 px-7 text-base" : "h-11 gap-2 px-5 text-sm",
         className ?? "",
       ].join(" ")}
