@@ -85,8 +85,63 @@ This document lists the main product and design improvements made to the Propsoc
 **Improved:** Created a more consistent visual language across typography, spacing, colour usage, cards, buttons and section headings.
 
 **Why:** Consistency makes the page easier to scan and gives the different sections a stronger relationship with the Propsoch brand.
+## 14. Web Vitals Improvements and Fixes
 
-## 14. Overall Direction
+### 14.1 Largest Contentful Paint (LCP)
+
+**Issue:** The hero depended on client-side rendering, while large artwork, fonts and media increased the time required to display the main content.
+
+**Fix:** Rendered the critical hero content using Next.js Server Components, kept it in the initial HTML, optimised fonts and assets, removed unnecessary third-party requests, hid large hero artwork on mobile, and deferred below-the-fold media.
+
+### 14.2 Total Blocking Time (TBT)
+
+**Issue:** Excessive JavaScript and duplicated responsive markup increased hydration and main-thread execution.
+
+**Fix:** Used Server Components by default, limited Client Components to interactive sections, removed duplicate mobile/desktop markup, replaced unnecessary JavaScript animations with CSS, and removed third-party execution.
+
+### 14.3 Main-thread Work
+
+**Issue:** The original page performed significant scripting, rendering and layout work during startup.
+
+**Fix:** Reduced DOM size and JavaScript execution, moved non-critical content away from the initial rendering path, used `content-visibility: auto` for suitable sections, and replaced expensive animation behaviour with CSS-first approaches.
+
+### 14.4 JavaScript Bootup
+
+**Issue:** Too much client-side JavaScript had to be parsed, evaluated and hydrated before the page became fully interactive.
+
+**Fix:** Server-rendered static content, reduced the number of Client Components, removed unnecessary dependencies, and isolated browser logic to components that actually require it.
+
+### 14.5 DOM and Rendering Cost
+
+**Issue:** Separate mobile and desktop structures duplicated content and increased the DOM size.
+
+**Fix:** Consolidated responsive markup into shared structures, removed duplicated content and unnecessary wrappers, and maintained a single semantic heading structure.
+
+### 14.6 Network Requests and Third-party Resources
+
+**Issue:** The original page made a high number of script requests and loaded third-party resources, increasing network, parsing and execution overhead.
+
+**Fix:** Removed unnecessary third-party resources, replaced YouTube iframes with lightweight poster facades, self-hosted the required font, optimised image and logo assets, and deferred non-critical media.
+
+### 14.7 Cumulative Layout Shift (CLS)
+
+**Issue:** Dynamic content and media could cause layout movement when their dimensions were not established before rendering.
+
+**Fix:** Added explicit dimensions to media, kept the animated hero text area stable, avoided layout-dependent animation, and used stable responsive structures.
+
+### 14.8 Animation and Mobile Rendering
+
+**Issue:** The large decorative hero animation added unnecessary rendering work on smaller devices.
+
+**Fix:** Removed the large hero artwork from mobile rendering, used a CSS-first typewriter effect, kept the animated content inside a stable layout area, and added reduced-motion support.
+
+### 14.9 Asset and Font Cost
+
+**Issue:** Fonts, favicons and media contributed unnecessary bytes and requests. The original font setup also included an unnecessary `latin-ext` request.
+
+**Fix:** Replaced the larger favicon with a lightweight SVG, removed the unnecessary `latin-ext` request, reduced font downloads from approximately **47.8 KB to 26.6 KB**, converted relevant image assets to WebP, and lazy-loaded non-critical media.
+
+## 15. Overall Direction
 
 The redesign focuses on making the Propsoch experience feel more structured, informative and trustworthy without changing the personality of the original brand.
 
